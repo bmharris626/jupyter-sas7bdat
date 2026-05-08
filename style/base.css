@@ -3,3 +3,155 @@
 
     https://jupyterlab.readthedocs.io/en/stable/developer/css.html
 */
+
+.jp-sas7bdat-viewer {
+  color: var(--jp-ui-font-color1);
+  background: var(--jp-layout-color1);
+  height: 100%;
+  overflow: hidden;
+}
+
+.jp-sas7bdat-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+}
+
+.jp-sas7bdat-sidebar {
+  border-right: 1px solid var(--jp-border-color2);
+  background: var(--jp-layout-color2);
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.jp-sas7bdat-sidebar h2 {
+  font-size: var(--jp-ui-font-size1);
+  font-weight: 600;
+  margin: 0;
+  padding: 12px;
+  border-bottom: 1px solid var(--jp-border-color2);
+}
+
+.jp-sas7bdat-variable-list {
+  overflow: auto;
+  padding: 8px;
+}
+
+.jp-sas7bdat-variable {
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+
+.jp-sas7bdat-variable + .jp-sas7bdat-variable {
+  margin-top: 6px;
+}
+
+.jp-sas7bdat-variable:hover {
+  border-color: var(--jp-border-color2);
+  background: var(--jp-layout-color1);
+}
+
+.jp-sas7bdat-variable-name {
+  font-weight: 600;
+  color: var(--jp-content-font-color1);
+  overflow-wrap: anywhere;
+}
+
+.jp-sas7bdat-variable-meta,
+.jp-sas7bdat-variable-label {
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+
+.jp-sas7bdat-main {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.jp-sas7bdat-toolbar {
+  align-items: center;
+  border-bottom: 1px solid var(--jp-border-color2);
+  display: flex;
+  gap: 8px;
+  min-height: 38px;
+  padding: 6px 8px;
+}
+
+.jp-sas7bdat-toolbar span {
+  flex: 1 1 auto;
+}
+
+.jp-sas7bdat-table-wrap {
+  flex: 1 1 auto;
+  overflow: auto;
+}
+
+.jp-sas7bdat-table {
+  border-collapse: collapse;
+  color: var(--jp-content-font-color1);
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+  min-width: 100%;
+}
+
+.jp-sas7bdat-table th,
+.jp-sas7bdat-table td {
+  border-bottom: 1px solid var(--jp-border-color3);
+  border-right: 1px solid var(--jp-border-color3);
+  max-width: 360px;
+  overflow: hidden;
+  padding: 5px 8px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jp-sas7bdat-table th {
+  background: var(--jp-layout-color2);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.jp-sas7bdat-loading,
+.jp-sas7bdat-error {
+  padding: 16px;
+}
+
+.jp-sas7bdat-error {
+  color: var(--jp-error-color1);
+}
+
+.jp-sas7bdat-convert-dialog label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 0 12px;
+}
+
+.jp-sas7bdat-convert-dialog input,
+.jp-sas7bdat-convert-dialog select {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+@media (width <= 700px) {
+  .jp-sas7bdat-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(120px, 32%) minmax(0, 1fr);
+  }
+
+  .jp-sas7bdat-sidebar {
+    border-bottom: 1px solid var(--jp-border-color2);
+    border-right: 0;
+  }
+}

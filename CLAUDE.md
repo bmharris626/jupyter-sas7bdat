@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 A JupyterLab extension (with a Jupyter Server backend) that adds SAS7BDAT support:
+
 - Open and preview `.sas7bdat` files inside JupyterLab
 - Convert SAS7BDAT to CSV, TSV, JSON, and Parquet
 - Convert CSV, TSV, JSON, and Parquet to SAS7BDAT (via SAS XPORT `.xpt` — see Constraints below)
@@ -13,7 +14,7 @@ SAS I/O library: **`pyreadstat`** (read SAS7BDAT; write XPORT `.xpt`, SPSS `.sav
 
 ## Constraints
 
-**`pyreadstat` cannot write SAS7BDAT.** It can only *read* `.sas7bdat` files. The write functions available are `write_xport`, `write_sav`, and `write_dta`. Any "export to SAS" feature must use XPORT format (`.xpt`), which SAS can read, rather than `.sas7bdat`. This affects steps 3 and 4 of the implementation plan.
+**`pyreadstat` cannot write SAS7BDAT.** It can only _read_ `.sas7bdat` files. The write functions available are `write_xport`, `write_sav`, and `write_dta`. Any "export to SAS" feature must use XPORT format (`.xpt`), which SAS can read, rather than `.sas7bdat`. This affects steps 3 and 4 of the implementation plan.
 
 ## Architecture
 
@@ -26,6 +27,7 @@ Standard JupyterLab two-layer extension layout (scaffolded via `copier` from `ju
 ## Commands
 
 ### Setup
+
 ```bash
 pip install -e ".[dev,test]"
 # Extension config must go in ~/.jupyter/jupyter_server_config.d/ (not --sys-prefix)
@@ -35,6 +37,7 @@ jupyter server extension list   # verify: jupyter_sas7bdat 0.1.0 OK
 ```
 
 ### Build frontend
+
 ```bash
 jlpm install
 jlpm build      # production
@@ -42,11 +45,13 @@ jlpm watch      # dev incremental rebuild
 ```
 
 ### Run (development)
+
 ```bash
 jupyter lab --autoreload
 ```
 
 ### Tests
+
 ```bash
 pytest                                          # all server-side tests
 pytest jupyter_sas7bdat/tests/test_routes.py   # single file
@@ -54,6 +59,7 @@ jlpm test                                       # frontend (Jest)
 ```
 
 ### Lint / type-check
+
 ```bash
 ruff check .
 mypy jupyter_sas7bdat/ --ignore-missing-imports
@@ -69,6 +75,7 @@ The test server loads all globally-enabled Jupyter extensions by default. `conft
 ## pyreadstat metadata fields
 
 When reading a `.sas7bdat` file, the `meta` object returned by `pyreadstat.read_sas7bdat()` has:
+
 - `meta.column_names_to_labels` — `dict[str, str | None]` mapping column name → SAS label
 - `meta.original_variable_types` — `dict[str, str | None]` mapping column name → SAS format string (e.g. `"BEST"`, `"$"`, `"MMDDYY"`)
 - `meta.column_names`, `meta.column_labels` — parallel lists (use `column_names_to_labels` dict instead)
@@ -79,6 +86,7 @@ Note: `column_labels_formatted` does **not** exist — use `column_names_to_labe
 
 All handlers live under `/jupyter-sas7bdat/`. Paths in query params / request bodies are resolved relative to `server_root_dir` and validated against path traversal.
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/jupyter-sas7bdat/read` | Read SAS7BDAT; params: `path`, `offset` (default 0), `limit` (default 100) |
+| Method | Path                        | Description                                                                                                  |
+| ------ | --------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| GET    | `/jupyter-sas7bdat/read`    | Read SAS7BDAT; params: `path`, `offset` (default 0), `limit` (default 100)                                   |
+| POST   | `/jupyter-sas7bdat/convert` | Convert files; JSON body: `src`, `dst`, `format` where `format` is `csv`, `tsv`, `json`, `parquet`, or `xpt` |

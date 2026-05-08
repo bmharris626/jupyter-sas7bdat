@@ -26,6 +26,7 @@ dependencies = [
     "jupyter_server>=2.4.0,<3",
     "pyreadstat>=1.2.0",
     "pandas>=2.0.0",
+    "pyarrow>=14.0.0",
 ]
 dynamic = ["version", "description", "authors", "urls", "keywords"]
 
