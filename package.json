@@ -7,11 +7,11 @@
         "jupyterlab",
         "jupyterlab-extension"
     ],
-    "homepage": "https://github.com/bmharris/jupyter-sas7bdat",
+    "homepage": "https://github.com/bmharris626/jupyter-sas7bdat",
     "bugs": {
-        "url": "https://github.com/bmharris/jupyter-sas7bdat/issues"
+        "url": "https://github.com/bmharris626/jupyter-sas7bdat/issues"
     },
-    "license": "BSD-3-Clause",
+    "license": "MIT",
     "author": {
         "name": "bmharris",
         "email": "bmharris626@gmail.com"
@@ -26,7 +26,7 @@
     "style": "style/index.css",
     "repository": {
         "type": "git",
-        "url": "https://github.com/bmharris/jupyter-sas7bdat.git"
+        "url": "https://github.com/bmharris626/jupyter-sas7bdat.git"
     },
     "scripts": {
         "build": "jlpm build:lib && jlpm build:labextension:dev",

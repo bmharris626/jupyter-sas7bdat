@@ -1,49 +1,100 @@
-# jupyter_sas7bdat
+# jupyter-sas7bdat
 
-[![Github Actions Status](https://github.com/bmharris/jupyter-sas7bdat/workflows/Build/badge.svg)](https://github.com/bmharris/jupyter-sas7bdat/actions/workflows/build.yml)
+[![GitHub Actions Status](https://github.com/bmharris626/jupyter-sas7bdat/workflows/Build/badge.svg)](https://github.com/bmharris626/jupyter-sas7bdat/actions/workflows/build.yml)
 
-A JupyterLab extension for reading, writing, and converting SAS7BDAT files
+A JupyterLab 4 extension for previewing SAS7BDAT datasets and converting SAS data files from inside JupyterLab.
 
-This extension is composed of a Python package named `jupyter_sas7bdat`
-for the server extension and a NPM package named `jupyter-sas7bdat`
-for the frontend extension.
+The project includes two coupled packages:
+
+- `jupyter_sas7bdat`: the Python server extension that reads and converts data files.
+- `jupyter-sas7bdat`: the prebuilt JupyterLab frontend extension.
+
+## Features
+
+- Open `.sas7bdat` files directly from the JupyterLab file browser.
+- Preview dataset rows with pagination.
+- Show SAS variable metadata, including names, labels, dtypes, and original SAS formats.
+- Convert SAS7BDAT files to CSV, TSV, JSON, Parquet, or SAS XPORT (`.xpt`).
+- Convert CSV, TSV, JSON, and Parquet files to SAS XPORT (`.xpt`).
+- Preserve SAS labels and formats in Parquet field metadata when converting from SAS7BDAT.
+
+Native SAS7BDAT writing is not supported because `pyreadstat` cannot write `.sas7bdat` files. SAS export uses XPORT (`.xpt`) instead.
 
 ## Requirements
 
-- JupyterLab >= 4.0.0
+- Python >= 3.10
+- JupyterLab >= 4.0.0, < 5
 
 ## Install
-
-To install the extension, execute:
 
 ```bash
 pip install jupyter_sas7bdat
 ```
 
-## Uninstall
+After installation, Jupyter should discover both the server extension and prebuilt lab extension automatically.
 
-To remove the extension, execute:
+## Usage
+
+### Preview SAS7BDAT Files
+
+Open a `.sas7bdat` file from the JupyterLab file browser. The viewer displays variable metadata and a paginated row preview.
+
+### Convert Files
+
+Right-click a supported file in the JupyterLab file browser and choose the SAS7BDAT conversion command. Select the target format and output path, then run the conversion.
+
+Supported output formats:
+
+- `.csv`
+- `.tsv`
+- `.json`
+- `.parquet`
+- `.xpt` for SAS XPORT
+
+## REST API
+
+The frontend uses these server endpoints under the `jupyter-sas7bdat` namespace:
+
+- `GET /jupyter-sas7bdat/read?path=&offset=&limit=` reads SAS7BDAT metadata and paginated rows.
+- `POST /jupyter-sas7bdat/convert` converts files with JSON body `{ "src": "...", "dst": "...", "format": "..." }`.
+
+Paths are resolved relative to the Jupyter server root.
+
+## Development
+
+Install development dependencies and enable the extension locally:
 
 ```bash
-pip uninstall jupyter_sas7bdat
+pip install --editable ".[dev,test]"
+jupyter labextension develop . --overwrite
+jupyter server extension enable jupyter_sas7bdat
 ```
 
-## Troubleshoot
+Useful commands:
 
-If you are seeing the frontend extension, but it is not working, check
-that the server extension is enabled:
+```bash
+jlpm build
+jlpm test
+jlpm run lint:check
+pytest -vv -r ap --cov jupyter_sas7bdat
+ruff check .
+mypy jupyter_sas7bdat/ --ignore-missing-imports
+```
+
+## Troubleshooting
+
+If the frontend extension appears but requests fail, check that the server extension is enabled:
 
 ```bash
 jupyter server extension list
 ```
 
-If the server extension is installed and enabled, but you are not seeing
-the frontend extension, check the frontend extension is installed:
+If the server extension is enabled but the UI is missing, check that the prebuilt lab extension is installed:
 
 ```bash
 jupyter labextension list
 ```
 
-## Contributing
+## License
 
-If you would like to contribute to this extension, please refer to the [Contributing Guide](CONTRIBUTING.md).
+MIT. See [LICENSE](LICENSE).
