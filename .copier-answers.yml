@@ -1,0 +1,16 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: 207c2c6
+_src_path: /tmp/ext-template
+author_email: bmharris626@gmail.com
+author_name: bmharris
+has_ai_rules: false
+has_binder: false
+has_settings: false
+kind: frontend-and-server
+labextension_name: jupyter-sas7bdat
+project_short_description: A JupyterLab extension for reading, writing, and converting
+    SAS7BDAT files
+python_name: jupyter_sas7bdat
+repository: https://github.com/bmharris/jupyter-sas7bdat
+test: true
+
