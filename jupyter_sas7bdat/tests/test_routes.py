@@ -8,21 +8,6 @@ import pytest
 
 
 # ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-def _write_fixture(path, df, column_labels=None):
-    """Write a minimal SAS7BDAT-readable fixture via write_xport for testing,
-    or save directly via pyreadstat if write_sas7bdat becomes available.
-    Since pyreadstat only reads SAS7BDAT, we create a fixture using
-    write_xport and verify our handler against a pre-built test file."""
-    # write_xport is SAS Transport; for unit tests we create a tiny sas7bdat
-    # by copying a known-good file from the pandas test suite if available,
-    # otherwise we skip the test.
-    pass
-
-
-# ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
 
@@ -43,19 +28,6 @@ def sas_fixture(tmp_path, jp_root_dir):
     dest = jp_root_dir / "test1.sas7bdat"
     shutil.copy(src, dest)
     return dest
-
-
-@pytest.fixture
-def labeled_fixture(tmp_path, jp_root_dir):
-    """A minimal SAS7BDAT fixture with known column labels, written via
-    pyreadstat.write_xport then re-read as xport — used only to verify
-    that the metadata struct behaves as expected.
-
-    For the actual /read handler test we use sas_fixture (a real sas7bdat)."""
-    df = pd.DataFrame({"score": [1.0, 2.0], "label": ["a", "b"]})
-    xpt_path = str(tmp_path / "labeled.xpt")
-    pyreadstat.write_xport(df, xpt_path, column_labels=["Score value", "Label text"])
-    return xpt_path, df
 
 
 # ---------------------------------------------------------------------------

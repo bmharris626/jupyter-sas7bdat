@@ -279,8 +279,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
   autoStart: true,
   requires: [IFileBrowserFactory],
   activate: (app: JupyterFrontEnd, browserFactory: IFileBrowserFactory) => {
-    console.log('JupyterLab extension jupyter-sas7bdat is activated!');
-
     app.docRegistry.addFileType({
       name: FILE_TYPE,
       displayName: 'SAS7BDAT',

@@ -1,7 +1,7 @@
 {
     "name": "jupyter-sas7bdat",
     "version": "0.1.0",
-    "description": "A JupyterLab extension for reading, writing, and converting SAS7BDAT files",
+    "description": "A JupyterLab extension for previewing and converting SAS7BDAT files",
     "keywords": [
         "jupyter",
         "jupyterlab",

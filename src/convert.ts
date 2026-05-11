@@ -34,7 +34,7 @@ export class ConvertDialogBody extends Widget {
 
 function defaultOutputPath(path: string, format: string): string {
   const slash = path.lastIndexOf('/');
-  const directory = slash >= 0 ? `${path.slice(0, slash + 1)}` : '';
+  const directory = slash >= 0 ? path.slice(0, slash + 1) : '';
   const basename = slash >= 0 ? path.slice(slash + 1) : path;
   const dot = basename.lastIndexOf('.');
   const stem = dot >= 0 ? basename.slice(0, dot) : basename;

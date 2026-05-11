@@ -67,7 +67,9 @@ Install development dependencies and enable the extension locally:
 ```bash
 pip install --editable ".[dev,test]"
 jupyter labextension develop . --overwrite
-jupyter server extension enable jupyter_sas7bdat
+mkdir -p ~/.jupyter/jupyter_server_config.d
+cp jupyter-config/server-config/jupyter_sas7bdat.json ~/.jupyter/jupyter_server_config.d/
+jupyter server extension list  # verify: jupyter_sas7bdat enabled
 ```
 
 Useful commands:

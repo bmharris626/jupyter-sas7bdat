@@ -24,8 +24,15 @@ def _resolve_path(root_dir: str, user_path: str) -> Path:
     return target
 
 
+def _read_sas7bdat_raw(path: Path):
+    try:
+        return pyreadstat.read_sas7bdat(str(path))
+    except UnicodeDecodeError:
+        return pyreadstat.read_sas7bdat(str(path), encoding="latin-1")
+
+
 def _read_sas7bdat(path: Path) -> tuple[pd.DataFrame, dict[str, Any]]:
-    df, meta = pyreadstat.read_sas7bdat(str(path))
+    df, meta = _read_sas7bdat_raw(path)
     return df, {
         "labels": meta.column_names_to_labels,
         "formats": meta.original_variable_types,
@@ -119,9 +126,7 @@ class ReadHandler(APIHandler):
         if not target.exists():
             raise tornado.web.HTTPError(404, f"File not found: {path}")
 
-        df, meta = await asyncio.to_thread(
-            pyreadstat.read_sas7bdat, str(target)
-        )
+        df, meta = await asyncio.to_thread(_read_sas7bdat_raw, target)
 
         columns = []
         for col in df.columns:
@@ -147,10 +152,7 @@ class ReadHandler(APIHandler):
 class ConvertHandler(APIHandler):
     @tornado.web.authenticated
     async def post(self):
-        try:
-            body = self.get_json_body()
-        except json.JSONDecodeError as exc:
-            raise tornado.web.HTTPError(400, "Invalid JSON body") from exc
+        body = self.get_json_body()
 
         if not isinstance(body, dict):
             raise tornado.web.HTTPError(400, "JSON body must be an object")
@@ -171,7 +173,7 @@ class ConvertHandler(APIHandler):
         if not src.exists():
             raise tornado.web.HTTPError(404, f"File not found: {src_path}")
         if not dst.parent.exists():
-            raise tornado.web.HTTPError(404, f"Output directory not found: {dst.parent.name}")
+            raise tornado.web.HTTPError(404, f"Output directory not found: {dst_path}")
 
         await asyncio.to_thread(_convert_file, src, dst, output_format)
         self.finish(json.dumps({"path": dst_path, "format": output_format}))
