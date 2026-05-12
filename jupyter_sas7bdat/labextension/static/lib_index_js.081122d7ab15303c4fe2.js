@@ -16,8 +16,8 @@ __webpack_require__.r(__webpack_exports__);
 
 const OUTPUT_FORMATS = ['csv', 'tsv', 'json', 'parquet', 'xpt'];
 class ConvertDialogBody extends _lumino_widgets__WEBPACK_IMPORTED_MODULE_0__.Widget {
-    constructor(path) {
-        super({ node: createConvertNode(path) });
+    constructor(path, serverRoot) {
+        super({ node: createConvertNode(path, serverRoot) });
         this.addClass('jp-sas7bdat-convert-dialog');
     }
     getValue() {
@@ -32,20 +32,21 @@ class ConvertDialogBody extends _lumino_widgets__WEBPACK_IMPORTED_MODULE_0__.Wid
         return this.node.querySelector('.jp-sas7bdat-convert-output');
     }
 }
-function defaultOutputPath(path, format) {
-    const slash = path.lastIndexOf('/');
-    const directory = slash >= 0 ? path.slice(0, slash + 1) : '';
-    const basename = slash >= 0 ? path.slice(slash + 1) : path;
+function defaultOutputPath(path, serverRoot, format) {
+    const fullPath = serverRoot.replace(/\/$/, '') + '/' + path;
+    const slash = fullPath.lastIndexOf('/');
+    const directory = slash >= 0 ? fullPath.slice(0, slash + 1) : '';
+    const basename = slash >= 0 ? fullPath.slice(slash + 1) : fullPath;
     const dot = basename.lastIndexOf('.');
     const stem = dot >= 0 ? basename.slice(0, dot) : basename;
     return `${directory}${stem}.${format}`;
 }
-function createConvertNode(path) {
+function createConvertNode(path, serverRoot) {
     const node = document.createElement('div');
     const source = document.createElement('label');
     source.textContent = 'Source';
     const sourceValue = document.createElement('input');
-    sourceValue.value = path;
+    sourceValue.value = serverRoot.replace(/\/$/, '') + '/' + path;
     sourceValue.readOnly = true;
     sourceValue.className = 'jp-mod-styled';
     source.appendChild(sourceValue);
@@ -64,10 +65,10 @@ function createConvertNode(path) {
     output.textContent = 'Output path';
     const outputInput = document.createElement('input');
     outputInput.className = 'jp-sas7bdat-convert-output jp-mod-styled';
-    outputInput.value = defaultOutputPath(path, formatSelect.value);
+    outputInput.value = defaultOutputPath(path, serverRoot, formatSelect.value);
     output.appendChild(outputInput);
     formatSelect.addEventListener('change', () => {
-        outputInput.value = defaultOutputPath(path, formatSelect.value);
+        outputInput.value = defaultOutputPath(path, serverRoot, formatSelect.value);
     });
     node.appendChild(source);
     node.appendChild(format);
@@ -228,7 +229,8 @@ function selectedPath(browserFactory) {
     return item.value.path;
 }
 async function showConvertDialog(path, app) {
-    const body = new _convert__WEBPACK_IMPORTED_MODULE_5__.ConvertDialogBody(path);
+    const settings = await (0,_request__WEBPACK_IMPORTED_MODULE_6__.requestAPI)('settings', app.serviceManager.serverSettings);
+    const body = new _convert__WEBPACK_IMPORTED_MODULE_5__.ConvertDialogBody(path, settings.server_root);
     const result = await (0,_jupyterlab_apputils__WEBPACK_IMPORTED_MODULE_0__.showDialog)({
         title: `Convert ${path}`,
         body,
@@ -364,4 +366,4 @@ async function requestAPI(endPoint, serverSettings, init = {}) {
 /***/ }
 
 }]);
-//# sourceMappingURL=lib_index_js.99751479edf9c8493161.js.map
+//# sourceMappingURL=lib_index_js.081122d7ab15303c4fe2.js.map

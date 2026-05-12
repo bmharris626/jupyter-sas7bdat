@@ -48,6 +48,10 @@ interface IConvertResponse {
   format: string;
 }
 
+interface ISettingsResponse {
+  server_root: string;
+}
+
 class Sas7bdatWidget extends ReactWidget {
   constructor(
     private readonly context: DocumentRegistry.Context,
@@ -233,7 +237,14 @@ async function showConvertDialog(
   path: string,
   app: JupyterFrontEnd
 ): Promise<void> {
-  const body: Dialog.IBodyWidget<IConvertValue> = new ConvertDialogBody(path);
+  const settings = await requestAPI<ISettingsResponse>(
+    'settings',
+    app.serviceManager.serverSettings
+  );
+  const body: Dialog.IBodyWidget<IConvertValue> = new ConvertDialogBody(
+    path,
+    settings.server_root
+  );
   const result = await showDialog({
     title: `Convert ${path}`,
     body,

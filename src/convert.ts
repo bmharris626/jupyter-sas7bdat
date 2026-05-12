@@ -8,8 +8,8 @@ export interface IConvertValue {
 }
 
 export class ConvertDialogBody extends Widget {
-  constructor(path: string) {
-    super({ node: createConvertNode(path) });
+  constructor(path: string, serverRoot: string) {
+    super({ node: createConvertNode(path, serverRoot) });
     this.addClass('jp-sas7bdat-convert-dialog');
   }
 
@@ -32,22 +32,27 @@ export class ConvertDialogBody extends Widget {
   }
 }
 
-function defaultOutputPath(path: string, format: string): string {
-  const slash = path.lastIndexOf('/');
-  const directory = slash >= 0 ? path.slice(0, slash + 1) : '';
-  const basename = slash >= 0 ? path.slice(slash + 1) : path;
+function defaultOutputPath(
+  path: string,
+  serverRoot: string,
+  format: string
+): string {
+  const fullPath = serverRoot.replace(/\/$/, '') + '/' + path;
+  const slash = fullPath.lastIndexOf('/');
+  const directory = slash >= 0 ? fullPath.slice(0, slash + 1) : '';
+  const basename = slash >= 0 ? fullPath.slice(slash + 1) : fullPath;
   const dot = basename.lastIndexOf('.');
   const stem = dot >= 0 ? basename.slice(0, dot) : basename;
   return `${directory}${stem}.${format}`;
 }
 
-function createConvertNode(path: string): HTMLElement {
+function createConvertNode(path: string, serverRoot: string): HTMLElement {
   const node = document.createElement('div');
 
   const source = document.createElement('label');
   source.textContent = 'Source';
   const sourceValue = document.createElement('input');
-  sourceValue.value = path;
+  sourceValue.value = serverRoot.replace(/\/$/, '') + '/' + path;
   sourceValue.readOnly = true;
   sourceValue.className = 'jp-mod-styled';
   source.appendChild(sourceValue);
@@ -68,11 +73,11 @@ function createConvertNode(path: string): HTMLElement {
   output.textContent = 'Output path';
   const outputInput = document.createElement('input');
   outputInput.className = 'jp-sas7bdat-convert-output jp-mod-styled';
-  outputInput.value = defaultOutputPath(path, formatSelect.value);
+  outputInput.value = defaultOutputPath(path, serverRoot, formatSelect.value);
   output.appendChild(outputInput);
 
   formatSelect.addEventListener('change', () => {
-    outputInput.value = defaultOutputPath(path, formatSelect.value);
+    outputInput.value = defaultOutputPath(path, serverRoot, formatSelect.value);
   });
 
   node.appendChild(source);

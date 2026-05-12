@@ -18,7 +18,8 @@ CONVERT_FORMATS = {"csv", "tsv", "json", "parquet", "xpt"}
 def _resolve_path(root_dir: str, user_path: str) -> Path:
     """Resolve user_path under root_dir, raising 400 on traversal attempts."""
     root = Path(root_dir).resolve()
-    target = (root / user_path).resolve()
+    p = Path(user_path)
+    target = p.resolve() if p.is_absolute() else (root / user_path).resolve()
     if not target.is_relative_to(root):
         raise tornado.web.HTTPError(400, "Path outside root directory")
     return target
@@ -115,6 +116,14 @@ def _convert_file(src: Path, dst: Path, output_format: str) -> None:
     _write_dataframe(df, dst, output_format, metadata)
 
 
+class SettingsHandler(APIHandler):
+    @tornado.web.authenticated
+    async def get(self):
+        self.finish(json.dumps({
+            "server_root": self.settings["server_root_dir"]
+        }))
+
+
 class ReadHandler(APIHandler):
     @tornado.web.authenticated
     async def get(self):
@@ -184,6 +193,7 @@ def setup_route_handlers(web_app):
     base_url = web_app.settings["base_url"]
 
     handlers = [
+        (url_path_join(base_url, "jupyter-sas7bdat", "settings"), SettingsHandler),
         (url_path_join(base_url, "jupyter-sas7bdat", "read"), ReadHandler),
         (url_path_join(base_url, "jupyter-sas7bdat", "convert"), ConvertHandler),
     ]
