@@ -15,6 +15,7 @@ import {
 } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { LabIcon } from '@jupyterlab/ui-components';
+import { Widget } from '@lumino/widgets';
 import { Message } from '@lumino/messaging';
 
 import * as React from 'react';
@@ -52,6 +53,47 @@ interface ISettingsResponse {
   server_root: string;
 }
 
+class WhereFilterWidget extends Widget implements Dialog.IBodyWidget<string> {
+  constructor(initialValue: string) {
+    const node = document.createElement('div');
+    node.className = 'jp-sas7bdat-where-dialog';
+
+    const label = document.createElement('p');
+    label.className = 'jp-sas7bdat-where-label';
+    label.textContent = 'Filter rows — SQL-like syntax (AND, OR, NOT, =, !=, <, >, <=, >=):';
+    node.appendChild(label);
+
+    const textarea = document.createElement('textarea');
+    textarea.className = 'jp-sas7bdat-where-input jp-mod-styled';
+    textarea.value = initialValue;
+    textarea.placeholder = "age > 30 AND name = 'Smith'";
+    textarea.rows = 3;
+    node.appendChild(textarea);
+
+    const hint = document.createElement('p');
+    hint.className = 'jp-sas7bdat-where-hint';
+    hint.textContent =
+      'Column names with spaces need backticks: `my col` > 0. Leave blank to clear the filter.';
+    node.appendChild(hint);
+
+    super({ node });
+  }
+
+  getValue(): string {
+    const ta = this.node.querySelector<HTMLTextAreaElement>('textarea');
+    return ta?.value.trim() ?? '';
+  }
+
+  protected onAfterAttach(msg: Message): void {
+    super.onAfterAttach(msg);
+    const ta = this.node.querySelector<HTMLTextAreaElement>('textarea');
+    if (ta) {
+      ta.focus();
+      ta.selectionStart = ta.value.length;
+    }
+  }
+}
+
 class Sas7bdatWidget extends ReactWidget {
   constructor(
     private readonly context: DocumentRegistry.Context,
@@ -78,76 +120,132 @@ class Sas7bdatWidget extends ReactWidget {
     if (!this.data) {
       return (
         <div className="jp-sas7bdat-loading">
-          Loading {this.context.path}...
+          Loading {this.context.path}…
         </div>
       );
     }
 
-    const end = Math.min(
-      this.data.offset + this.data.rows.length,
-      this.data.total_rows
-    );
-    const hasPrevious = this.data.offset > 0;
-    const hasNext = end < this.data.total_rows;
+    const { offset, rows, total_rows, columns } = this.data;
+    const end = Math.min(offset + rows.length, total_rows);
+    const hasPrevious = offset > 0;
+    const hasNext = end < total_rows;
+    const visibleColumns = columns.filter(c => !this.hiddenColumns.has(c.name));
 
     return (
-      <div className="jp-sas7bdat-layout">
-        <aside className="jp-sas7bdat-sidebar">
-          <h2>Variables</h2>
-          <div className="jp-sas7bdat-variable-list">
-            {this.data.columns.map(column => (
-              <div className="jp-sas7bdat-variable" key={column.name}>
-                <div className="jp-sas7bdat-variable-name">{column.name}</div>
-                <div className="jp-sas7bdat-variable-meta">
-                  {column.type}
-                  {column.format ? ` · ${column.format}` : ''}
-                </div>
-                {column.label ? (
-                  <div className="jp-sas7bdat-variable-label">
-                    {column.label}
+      <div
+        className={
+          'jp-sas7bdat-layout' +
+          (this.sidebarOpen ? ' jp-sas7bdat-layout--sidebar-open' : '')
+        }
+      >
+        {this.sidebarOpen && (
+          <aside className="jp-sas7bdat-sidebar">
+            <div className="jp-sas7bdat-sidebar-header">
+              <span className="jp-sas7bdat-sidebar-title">Variables</span>
+              <button
+                className="jp-sas7bdat-close-btn"
+                title="Close panel"
+                onClick={() => {
+                  this.sidebarOpen = false;
+                  this.update();
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="jp-sas7bdat-variable-list">
+              {columns.map(col => (
+                <label className="jp-sas7bdat-variable" key={col.name}>
+                  <input
+                    type="checkbox"
+                    checked={!this.hiddenColumns.has(col.name)}
+                    onChange={() => this.toggleColumn(col.name)}
+                  />
+                  <div className="jp-sas7bdat-variable-info">
+                    <div className="jp-sas7bdat-variable-name">{col.name}</div>
+                    <div className="jp-sas7bdat-variable-meta">
+                      {col.type}
+                      {col.format ? ` · ${col.format}` : ''}
+                    </div>
+                    {col.label ? (
+                      <div className="jp-sas7bdat-variable-label">
+                        {col.label}
+                      </div>
+                    ) : null}
                   </div>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        </aside>
+                </label>
+              ))}
+            </div>
+          </aside>
+        )}
         <main className="jp-sas7bdat-main">
           <div className="jp-sas7bdat-toolbar">
-            <span>
-              Rows {this.data.total_rows === 0 ? 0 : this.data.offset + 1}-{end}{' '}
-              of {this.data.total_rows}
-            </span>
             <button
-              className="jp-Button jp-mod-styled"
-              disabled={!hasPrevious || this.loading}
-              onClick={() =>
-                void this.loadPage(Math.max(0, this.data!.offset - PAGE_SIZE))
+              className={
+                'jp-sas7bdat-toolbar-btn' +
+                (this.sidebarOpen ? ' jp-sas7bdat-toolbar-btn--active' : '')
               }
+              title={this.sidebarOpen ? 'Hide variables panel' : 'Show variables panel'}
+              onClick={() => {
+                this.sidebarOpen = !this.sidebarOpen;
+                this.update();
+              }}
             >
-              Previous
+              ☰ Variables
             </button>
             <button
-              className="jp-Button jp-mod-styled"
-              disabled={!hasNext || this.loading}
-              onClick={() => void this.loadPage(this.data!.offset + PAGE_SIZE)}
+              className={
+                'jp-sas7bdat-toolbar-btn' +
+                (this.activeWhere ? ' jp-sas7bdat-toolbar-btn--filter-active' : '')
+              }
+              title={
+                this.activeWhere
+                  ? `Active filter: ${this.activeWhere}`
+                  : 'Filter rows'
+              }
+              onClick={() => void this.showWhereDialog()}
             >
-              Next
+              ⊘ Filter{this.activeWhere ? ' ●' : ''}
+            </button>
+            <span className="jp-sas7bdat-toolbar-sep" />
+            <span className="jp-sas7bdat-row-info">
+              {this.loading
+                ? 'Loading…'
+                : total_rows === 0
+                ? 'No rows'
+                : `Rows ${offset + 1}–${end} of ${total_rows}`}
+            </span>
+            <button
+              className="jp-sas7bdat-toolbar-btn"
+              disabled={!hasPrevious || this.loading}
+              onClick={() =>
+                void this.loadPage(Math.max(0, offset - PAGE_SIZE))
+              }
+            >
+              ◂ Prev
+            </button>
+            <button
+              className="jp-sas7bdat-toolbar-btn"
+              disabled={!hasNext || this.loading}
+              onClick={() => void this.loadPage(offset + PAGE_SIZE)}
+            >
+              Next ▸
             </button>
           </div>
           <div className="jp-sas7bdat-table-wrap">
             <table className="jp-sas7bdat-table">
               <thead>
                 <tr>
-                  {this.data.columns.map(column => (
-                    <th key={column.name}>{column.name}</th>
+                  {visibleColumns.map(col => (
+                    <th key={col.name}>{col.name}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {this.data.rows.map((row, rowIndex) => (
-                  <tr key={rowIndex}>
-                    {this.data!.columns.map(column => (
-                      <td key={column.name}>{formatCell(row[column.name])}</td>
+                {rows.map((row, i) => (
+                  <tr key={i}>
+                    {visibleColumns.map(col => (
+                      <td key={col.name}>{formatCell(row[col.name])}</td>
                     ))}
                   </tr>
                 ))}
@@ -159,6 +257,29 @@ class Sas7bdatWidget extends ReactWidget {
     );
   }
 
+  private toggleColumn(name: string): void {
+    if (this.hiddenColumns.has(name)) {
+      this.hiddenColumns.delete(name);
+    } else {
+      this.hiddenColumns.add(name);
+    }
+    this.update();
+  }
+
+  private async showWhereDialog(): Promise<void> {
+    const body = new WhereFilterWidget(this.activeWhere);
+    const result = await showDialog<string>({
+      title: 'Filter Rows',
+      body,
+      buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Apply' })]
+    });
+    if (!result.button.accept) {
+      return;
+    }
+    this.activeWhere = result.value ?? '';
+    await this.loadPage(0);
+  }
+
   private async loadPage(offset: number): Promise<void> {
     this.loading = true;
     this.update();
@@ -168,6 +289,9 @@ class Sas7bdatWidget extends ReactWidget {
         offset: String(offset),
         limit: String(PAGE_SIZE)
       });
+      if (this.activeWhere) {
+        params.set('where', this.activeWhere);
+      }
       this.data = await requestAPI<IReadResponse>(
         `read?${params.toString()}`,
         this.serverSettings
@@ -184,6 +308,9 @@ class Sas7bdatWidget extends ReactWidget {
   private data: IReadResponse | null = null;
   private error: string | null = null;
   private loading = false;
+  private sidebarOpen = false;
+  private hiddenColumns = new Set<string>();
+  private activeWhere = '';
 }
 
 class Sas7bdatWidgetFactory extends ABCWidgetFactory<

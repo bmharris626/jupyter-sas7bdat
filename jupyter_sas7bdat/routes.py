@@ -130,18 +130,40 @@ class SettingsHandler(APIHandler):
         }))
 
 
+def _apply_where(df: pd.DataFrame, where: str) -> pd.DataFrame:
+    """Filter df using a SQL-like WHERE expression via pandas .query().
+
+    Normalises AND/OR/NOT (case-insensitive) to lowercase so pandas accepts
+    them, and rewrites bare = to == while leaving != alone.
+    """
+    import re
+    expr = re.sub(r'\bAND\b', 'and', where, flags=re.IGNORECASE)
+    expr = re.sub(r'\bOR\b', 'or', expr, flags=re.IGNORECASE)
+    expr = re.sub(r'\bNOT\b', 'not', expr, flags=re.IGNORECASE)
+    # Replace = not preceded/followed by !, <, >, = with ==
+    expr = re.sub(r'(?<![!<>=])=(?!=)', '==', expr)
+    try:
+        return df.query(expr)
+    except Exception as exc:
+        raise tornado.web.HTTPError(400, f"Invalid filter expression: {exc}") from exc
+
+
 class ReadHandler(APIHandler):
     @tornado.web.authenticated
     async def get(self):
         path = self.get_argument("path")
         offset = int(self.get_argument("offset", "0"))
         limit = int(self.get_argument("limit", "100"))
+        where = self.get_argument("where", "").strip()
 
         target = _resolve_path(self.settings["server_root_dir"], path)
         if not target.exists():
             raise tornado.web.HTTPError(404, f"File not found: {path}")
 
         df, meta = await asyncio.to_thread(_read_sas7bdat_raw, target)
+
+        if where:
+            df = await asyncio.to_thread(_apply_where, df, where)
 
         columns = []
         for col in df.columns:

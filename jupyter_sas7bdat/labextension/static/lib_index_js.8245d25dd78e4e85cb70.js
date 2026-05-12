@@ -97,10 +97,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _jupyterlab_filebrowser__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_jupyterlab_filebrowser__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var _jupyterlab_ui_components__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @jupyterlab/ui-components */ "webpack/sharing/consume/default/@jupyterlab/ui-components");
 /* harmony import */ var _jupyterlab_ui_components__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_jupyterlab_ui_components__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! react */ "webpack/sharing/consume/default/react");
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var _convert__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./convert */ "./lib/convert.js");
-/* harmony import */ var _request__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./request */ "./lib/request.js");
+/* harmony import */ var _lumino_widgets__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @lumino/widgets */ "webpack/sharing/consume/default/@lumino/widgets");
+/* harmony import */ var _lumino_widgets__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_lumino_widgets__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! react */ "webpack/sharing/consume/default/react");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _convert__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./convert */ "./lib/convert.js");
+/* harmony import */ var _request__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./request */ "./lib/request.js");
+
 
 
 
@@ -113,6 +116,41 @@ const FACTORY = 'SAS7BDAT Viewer';
 const FILE_TYPE = 'sas7bdat';
 const PAGE_SIZE = 100;
 const SUPPORTED_INPUTS = ['.sas7bdat', '.csv', '.tsv', '.json', '.parquet'];
+class WhereFilterWidget extends _lumino_widgets__WEBPACK_IMPORTED_MODULE_4__.Widget {
+    constructor(initialValue) {
+        const node = document.createElement('div');
+        node.className = 'jp-sas7bdat-where-dialog';
+        const label = document.createElement('p');
+        label.className = 'jp-sas7bdat-where-label';
+        label.textContent = 'Filter rows — SQL-like syntax (AND, OR, NOT, =, !=, <, >, <=, >=):';
+        node.appendChild(label);
+        const textarea = document.createElement('textarea');
+        textarea.className = 'jp-sas7bdat-where-input jp-mod-styled';
+        textarea.value = initialValue;
+        textarea.placeholder = "age > 30 AND name = 'Smith'";
+        textarea.rows = 3;
+        node.appendChild(textarea);
+        const hint = document.createElement('p');
+        hint.className = 'jp-sas7bdat-where-hint';
+        hint.textContent =
+            'Column names with spaces need backticks: `my col` > 0. Leave blank to clear the filter.';
+        node.appendChild(hint);
+        super({ node });
+    }
+    getValue() {
+        var _a;
+        const ta = this.node.querySelector('textarea');
+        return (_a = ta === null || ta === void 0 ? void 0 : ta.value.trim()) !== null && _a !== void 0 ? _a : '';
+    }
+    onAfterAttach(msg) {
+        super.onAfterAttach(msg);
+        const ta = this.node.querySelector('textarea');
+        if (ta) {
+            ta.focus();
+            ta.selectionStart = ta.value.length;
+        }
+    }
+}
 class Sas7bdatWidget extends _jupyterlab_apputils__WEBPACK_IMPORTED_MODULE_0__.ReactWidget {
     constructor(context, serverSettings) {
         super();
@@ -121,6 +159,9 @@ class Sas7bdatWidget extends _jupyterlab_apputils__WEBPACK_IMPORTED_MODULE_0__.R
         this.data = null;
         this.error = null;
         this.loading = false;
+        this.sidebarOpen = false;
+        this.hiddenColumns = new Set();
+        this.activeWhere = '';
         this.addClass('jp-sas7bdat-viewer');
     }
     onAfterAttach(msg) {
@@ -129,47 +170,89 @@ class Sas7bdatWidget extends _jupyterlab_apputils__WEBPACK_IMPORTED_MODULE_0__.R
     }
     render() {
         if (this.error) {
-            return (react__WEBPACK_IMPORTED_MODULE_4__.createElement("div", { className: "jp-sas7bdat-error" },
+            return (react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-error" },
                 "Failed to load ",
                 this.context.path,
                 ": ",
                 this.error));
         }
         if (!this.data) {
-            return (react__WEBPACK_IMPORTED_MODULE_4__.createElement("div", { className: "jp-sas7bdat-loading" },
+            return (react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-loading" },
                 "Loading ",
                 this.context.path,
-                "..."));
+                "\u2026"));
         }
-        const end = Math.min(this.data.offset + this.data.rows.length, this.data.total_rows);
-        const hasPrevious = this.data.offset > 0;
-        const hasNext = end < this.data.total_rows;
-        return (react__WEBPACK_IMPORTED_MODULE_4__.createElement("div", { className: "jp-sas7bdat-layout" },
-            react__WEBPACK_IMPORTED_MODULE_4__.createElement("aside", { className: "jp-sas7bdat-sidebar" },
-                react__WEBPACK_IMPORTED_MODULE_4__.createElement("h2", null, "Variables"),
-                react__WEBPACK_IMPORTED_MODULE_4__.createElement("div", { className: "jp-sas7bdat-variable-list" }, this.data.columns.map(column => (react__WEBPACK_IMPORTED_MODULE_4__.createElement("div", { className: "jp-sas7bdat-variable", key: column.name },
-                    react__WEBPACK_IMPORTED_MODULE_4__.createElement("div", { className: "jp-sas7bdat-variable-name" }, column.name),
-                    react__WEBPACK_IMPORTED_MODULE_4__.createElement("div", { className: "jp-sas7bdat-variable-meta" },
-                        column.type,
-                        column.format ? ` · ${column.format}` : ''),
-                    column.label ? (react__WEBPACK_IMPORTED_MODULE_4__.createElement("div", { className: "jp-sas7bdat-variable-label" }, column.label)) : null))))),
-            react__WEBPACK_IMPORTED_MODULE_4__.createElement("main", { className: "jp-sas7bdat-main" },
-                react__WEBPACK_IMPORTED_MODULE_4__.createElement("div", { className: "jp-sas7bdat-toolbar" },
-                    react__WEBPACK_IMPORTED_MODULE_4__.createElement("span", null,
-                        "Rows ",
-                        this.data.total_rows === 0 ? 0 : this.data.offset + 1,
-                        "-",
-                        end,
-                        ' ',
-                        "of ",
-                        this.data.total_rows),
-                    react__WEBPACK_IMPORTED_MODULE_4__.createElement("button", { className: "jp-Button jp-mod-styled", disabled: !hasPrevious || this.loading, onClick: () => void this.loadPage(Math.max(0, this.data.offset - PAGE_SIZE)) }, "Previous"),
-                    react__WEBPACK_IMPORTED_MODULE_4__.createElement("button", { className: "jp-Button jp-mod-styled", disabled: !hasNext || this.loading, onClick: () => void this.loadPage(this.data.offset + PAGE_SIZE) }, "Next")),
-                react__WEBPACK_IMPORTED_MODULE_4__.createElement("div", { className: "jp-sas7bdat-table-wrap" },
-                    react__WEBPACK_IMPORTED_MODULE_4__.createElement("table", { className: "jp-sas7bdat-table" },
-                        react__WEBPACK_IMPORTED_MODULE_4__.createElement("thead", null,
-                            react__WEBPACK_IMPORTED_MODULE_4__.createElement("tr", null, this.data.columns.map(column => (react__WEBPACK_IMPORTED_MODULE_4__.createElement("th", { key: column.name }, column.name))))),
-                        react__WEBPACK_IMPORTED_MODULE_4__.createElement("tbody", null, this.data.rows.map((row, rowIndex) => (react__WEBPACK_IMPORTED_MODULE_4__.createElement("tr", { key: rowIndex }, this.data.columns.map(column => (react__WEBPACK_IMPORTED_MODULE_4__.createElement("td", { key: column.name }, formatCell(row[column.name])))))))))))));
+        const { offset, rows, total_rows, columns } = this.data;
+        const end = Math.min(offset + rows.length, total_rows);
+        const hasPrevious = offset > 0;
+        const hasNext = end < total_rows;
+        const visibleColumns = columns.filter(c => !this.hiddenColumns.has(c.name));
+        return (react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: 'jp-sas7bdat-layout' +
+                (this.sidebarOpen ? ' jp-sas7bdat-layout--sidebar-open' : '') },
+            this.sidebarOpen && (react__WEBPACK_IMPORTED_MODULE_5__.createElement("aside", { className: "jp-sas7bdat-sidebar" },
+                react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-sidebar-header" },
+                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("span", { className: "jp-sas7bdat-sidebar-title" }, "Variables"),
+                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("button", { className: "jp-sas7bdat-close-btn", title: "Close panel", onClick: () => {
+                            this.sidebarOpen = false;
+                            this.update();
+                        } }, "\u2715")),
+                react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-variable-list" }, columns.map(col => (react__WEBPACK_IMPORTED_MODULE_5__.createElement("label", { className: "jp-sas7bdat-variable", key: col.name },
+                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("input", { type: "checkbox", checked: !this.hiddenColumns.has(col.name), onChange: () => this.toggleColumn(col.name) }),
+                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-variable-info" },
+                        react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-variable-name" }, col.name),
+                        react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-variable-meta" },
+                            col.type,
+                            col.format ? ` · ${col.format}` : ''),
+                        col.label ? (react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-variable-label" }, col.label)) : null))))))),
+            react__WEBPACK_IMPORTED_MODULE_5__.createElement("main", { className: "jp-sas7bdat-main" },
+                react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-toolbar" },
+                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("button", { className: 'jp-sas7bdat-toolbar-btn' +
+                            (this.sidebarOpen ? ' jp-sas7bdat-toolbar-btn--active' : ''), title: this.sidebarOpen ? 'Hide variables panel' : 'Show variables panel', onClick: () => {
+                            this.sidebarOpen = !this.sidebarOpen;
+                            this.update();
+                        } }, "\u2630 Variables"),
+                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("button", { className: 'jp-sas7bdat-toolbar-btn' +
+                            (this.activeWhere ? ' jp-sas7bdat-toolbar-btn--filter-active' : ''), title: this.activeWhere
+                            ? `Active filter: ${this.activeWhere}`
+                            : 'Filter rows', onClick: () => void this.showWhereDialog() },
+                        "\u2298 Filter",
+                        this.activeWhere ? ' ●' : ''),
+                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("span", { className: "jp-sas7bdat-toolbar-sep" }),
+                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("span", { className: "jp-sas7bdat-row-info" }, this.loading
+                        ? 'Loading…'
+                        : total_rows === 0
+                            ? 'No rows'
+                            : `Rows ${offset + 1}–${end} of ${total_rows}`),
+                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("button", { className: "jp-sas7bdat-toolbar-btn", disabled: !hasPrevious || this.loading, onClick: () => void this.loadPage(Math.max(0, offset - PAGE_SIZE)) }, "\u25C2 Prev"),
+                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("button", { className: "jp-sas7bdat-toolbar-btn", disabled: !hasNext || this.loading, onClick: () => void this.loadPage(offset + PAGE_SIZE) }, "Next \u25B8")),
+                react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-table-wrap" },
+                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("table", { className: "jp-sas7bdat-table" },
+                        react__WEBPACK_IMPORTED_MODULE_5__.createElement("thead", null,
+                            react__WEBPACK_IMPORTED_MODULE_5__.createElement("tr", null, visibleColumns.map(col => (react__WEBPACK_IMPORTED_MODULE_5__.createElement("th", { key: col.name }, col.name))))),
+                        react__WEBPACK_IMPORTED_MODULE_5__.createElement("tbody", null, rows.map((row, i) => (react__WEBPACK_IMPORTED_MODULE_5__.createElement("tr", { key: i }, visibleColumns.map(col => (react__WEBPACK_IMPORTED_MODULE_5__.createElement("td", { key: col.name }, formatCell(row[col.name])))))))))))));
+    }
+    toggleColumn(name) {
+        if (this.hiddenColumns.has(name)) {
+            this.hiddenColumns.delete(name);
+        }
+        else {
+            this.hiddenColumns.add(name);
+        }
+        this.update();
+    }
+    async showWhereDialog() {
+        var _a;
+        const body = new WhereFilterWidget(this.activeWhere);
+        const result = await (0,_jupyterlab_apputils__WEBPACK_IMPORTED_MODULE_0__.showDialog)({
+            title: 'Filter Rows',
+            body,
+            buttons: [_jupyterlab_apputils__WEBPACK_IMPORTED_MODULE_0__.Dialog.cancelButton(), _jupyterlab_apputils__WEBPACK_IMPORTED_MODULE_0__.Dialog.okButton({ label: 'Apply' })]
+        });
+        if (!result.button.accept) {
+            return;
+        }
+        this.activeWhere = (_a = result.value) !== null && _a !== void 0 ? _a : '';
+        await this.loadPage(0);
     }
     async loadPage(offset) {
         this.loading = true;
@@ -180,7 +263,10 @@ class Sas7bdatWidget extends _jupyterlab_apputils__WEBPACK_IMPORTED_MODULE_0__.R
                 offset: String(offset),
                 limit: String(PAGE_SIZE)
             });
-            this.data = await (0,_request__WEBPACK_IMPORTED_MODULE_6__.requestAPI)(`read?${params.toString()}`, this.serverSettings);
+            if (this.activeWhere) {
+                params.set('where', this.activeWhere);
+            }
+            this.data = await (0,_request__WEBPACK_IMPORTED_MODULE_7__.requestAPI)(`read?${params.toString()}`, this.serverSettings);
             this.error = null;
         }
         catch (reason) {
@@ -229,8 +315,8 @@ function selectedPath(browserFactory) {
     return item.value.path;
 }
 async function showConvertDialog(path, app) {
-    const settings = await (0,_request__WEBPACK_IMPORTED_MODULE_6__.requestAPI)('settings', app.serviceManager.serverSettings);
-    const body = new _convert__WEBPACK_IMPORTED_MODULE_5__.ConvertDialogBody(path, settings.server_root);
+    const settings = await (0,_request__WEBPACK_IMPORTED_MODULE_7__.requestAPI)('settings', app.serviceManager.serverSettings);
+    const body = new _convert__WEBPACK_IMPORTED_MODULE_6__.ConvertDialogBody(path, settings.server_root);
     const result = await (0,_jupyterlab_apputils__WEBPACK_IMPORTED_MODULE_0__.showDialog)({
         title: `Convert ${path}`,
         body,
@@ -245,7 +331,7 @@ async function showConvertDialog(path, app) {
         return;
     }
     try {
-        const response = await (0,_request__WEBPACK_IMPORTED_MODULE_6__.requestAPI)('convert', app.serviceManager.serverSettings, {
+        const response = await (0,_request__WEBPACK_IMPORTED_MODULE_7__.requestAPI)('convert', app.serviceManager.serverSettings, {
             method: 'POST',
             body: JSON.stringify({
                 src: path,
@@ -367,4 +453,4 @@ async function requestAPI(endPoint, serverSettings, init = {}) {
 /***/ }
 
 }]);
-//# sourceMappingURL=lib_index_js.6949bc272571ac12d66b.js.map
+//# sourceMappingURL=lib_index_js.8245d25dd78e4e85cb70.js.map
