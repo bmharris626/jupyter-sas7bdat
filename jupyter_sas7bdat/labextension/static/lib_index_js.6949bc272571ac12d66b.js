@@ -281,7 +281,8 @@ const plugin = {
         app.docRegistry.addWidgetFactory(new Sas7bdatWidgetFactory({
             name: FACTORY,
             fileTypes: [FILE_TYPE],
-            defaultFor: [FILE_TYPE]
+            defaultFor: [FILE_TYPE],
+            modelName: 'base64'
         }, app.serviceManager.serverSettings));
         app.commands.addCommand(COMMAND_CONVERT, {
             label: 'Convert Dataset...',
@@ -366,4 +367,4 @@ async function requestAPI(endPoint, serverSettings, init = {}) {
 /***/ }
 
 }]);
-//# sourceMappingURL=lib_index_js.081122d7ab15303c4fe2.js.map
+//# sourceMappingURL=lib_index_js.6949bc272571ac12d66b.js.map

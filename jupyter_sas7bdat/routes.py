@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -16,13 +17,18 @@ CONVERT_FORMATS = {"csv", "tsv", "json", "parquet", "xpt"}
 
 
 def _resolve_path(root_dir: str, user_path: str) -> Path:
-    """Resolve user_path under root_dir, raising 400 on traversal attempts."""
+    """Resolve user_path under root_dir, raising 400 on traversal attempts.
+
+    Uses normpath (not resolve) so that symlinks inside root that point
+    outside are still allowed — prevents ../traversal without blocking
+    legitimate admin-configured symlinks.
+    """
     root = Path(root_dir).resolve()
     p = Path(user_path)
-    target = p.resolve() if p.is_absolute() else (root / user_path).resolve()
-    if not target.is_relative_to(root):
+    normalized = Path(os.path.normpath(p if p.is_absolute() else root / user_path))
+    if normalized != root and not str(normalized).startswith(str(root) + os.sep):
         raise tornado.web.HTTPError(400, "Path outside root directory")
-    return target
+    return normalized
 
 
 def _read_sas7bdat_raw(path: Path):

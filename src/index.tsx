@@ -305,7 +305,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
         {
           name: FACTORY,
           fileTypes: [FILE_TYPE],
-          defaultFor: [FILE_TYPE]
+          defaultFor: [FILE_TYPE],
+          modelName: 'base64'
         },
         app.serviceManager.serverSettings
       )
