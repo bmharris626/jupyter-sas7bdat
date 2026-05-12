@@ -421,7 +421,6 @@ var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBP
 // Module
 ___CSS_LOADER_EXPORT___.push([module.id, `/*
     See the JupyterLab Developer Guide for useful CSS Patterns:
-
     https://jupyterlab.readthedocs.io/en/stable/developer/css.html
 */
 
@@ -432,9 +431,10 @@ ___CSS_LOADER_EXPORT___.push([module.id, `/*
   background: var(--jp-layout-color1);
   height: 100%;
   overflow: hidden;
+  font-family: var(--jp-ui-font-family);
 }
 
-/* ── Layout: sidebar collapsed by default, visible when modifier present ── */
+/* ── Layout ───────────────────────────────────────────────────────── */
 
 .jp-sas7bdat-layout {
   display: grid;
@@ -444,153 +444,221 @@ ___CSS_LOADER_EXPORT___.push([module.id, `/*
 }
 
 .jp-sas7bdat-layout.jp-sas7bdat-layout--sidebar-open {
-  grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
+  grid-template-columns: 240px minmax(0, 1fr);
 }
 
 /* ── Sidebar ──────────────────────────────────────────────────────── */
 
 .jp-sas7bdat-sidebar {
-  border-right: 1px solid var(--jp-border-color2);
   background: var(--jp-layout-color2);
-  min-height: 0;
-  overflow: hidden;
+  border-right: 1px solid var(--jp-border-color2);
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .jp-sas7bdat-sidebar-header {
-  display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 8px 6px 12px;
   border-bottom: 1px solid var(--jp-border-color2);
-  min-height: 38px;
+  display: flex;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 8px 0 12px;
 }
 
 .jp-sas7bdat-sidebar-title {
-  flex: 1 1 auto;
-  font-size: var(--jp-ui-font-size1);
-  font-weight: 600;
-  color: var(--jp-ui-font-color1);
-}
-
-.jp-sas7bdat-close-btn {
-  background: transparent;
-  border: none;
-  border-radius: 4px;
-  color: var(--jp-ui-font-color2);
-  cursor: pointer;
-  font-size: 12px;
-  line-height: 1;
-  padding: 3px 5px;
-  transition: background 0.1s, color 0.1s;
-}
-
-.jp-sas7bdat-close-btn:hover {
-  background: var(--jp-layout-color3);
   color: var(--jp-ui-font-color0);
+  flex: 1 1 auto;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.jp-sas7bdat-sidebar-count {
+  background: var(--jp-layout-color3);
+  border-radius: 10px;
+  color: var(--jp-ui-font-color2);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
 }
 
 /* ── Variable list ────────────────────────────────────────────────── */
 
 .jp-sas7bdat-variable-list {
   overflow-y: auto;
-  padding: 6px 8px;
+  padding: 4px;
 }
 
 .jp-sas7bdat-variable {
-  display: flex;
   align-items: flex-start;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
   gap: 8px;
   padding: 6px 8px;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.jp-sas7bdat-variable + .jp-sas7bdat-variable {
-  margin-top: 2px;
+  transition: background 0.12s;
 }
 
 .jp-sas7bdat-variable:hover {
-  border-color: var(--jp-border-color2);
-  background: var(--jp-layout-color1);
+  background: var(--jp-layout-color3);
+}
+
+.jp-sas7bdat-variable--hidden {
+  opacity: 0.45;
 }
 
 .jp-sas7bdat-variable input[type='checkbox'] {
-  flex-shrink: 0;
-  margin-top: 2px;
   accent-color: var(--jp-brand-color1);
   cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 3px;
 }
 
 .jp-sas7bdat-variable-info {
   min-width: 0;
 }
 
+.jp-sas7bdat-variable-name-row {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+}
+
 .jp-sas7bdat-variable-name {
-  font-weight: 600;
   color: var(--jp-content-font-color1);
+  font-size: var(--jp-ui-font-size1);
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jp-sas7bdat-variable-label {
+  color: var(--jp-ui-font-color2);
+  font-size: 11px;
+  margin-top: 2px;
   overflow-wrap: anywhere;
 }
 
-.jp-sas7bdat-variable-meta,
-.jp-sas7bdat-variable-label {
+.jp-sas7bdat-variable-format {
+  color: var(--jp-ui-font-color3);
+  font-family: var(--jp-code-font-family);
+  font-size: 10px;
+  margin-top: 1px;
+}
+
+/* ── Type badges ──────────────────────────────────────────────────── */
+
+.jp-sas7bdat-type-badge {
+  border-radius: 3px;
+  flex-shrink: 0;
+  font-family: var(--jp-code-font-family);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 1px 4px;
+}
+
+.jp-sas7bdat-type-num {
+  background: color-mix(in srgb, var(--jp-brand-color1) 15%, transparent);
+  color: var(--jp-brand-color1);
+}
+
+.jp-sas7bdat-type-str {
+  background: color-mix(in srgb, var(--jp-success-color1, #2e7d32) 15%, transparent);
+  color: var(--jp-success-color1, #2e7d32);
+}
+
+.jp-sas7bdat-type-date {
+  background: color-mix(in srgb, var(--jp-warn-color1, #f57c00) 15%, transparent);
+  color: var(--jp-warn-color1, #f57c00);
+}
+
+.jp-sas7bdat-type-other {
+  background: var(--jp-layout-color3);
   color: var(--jp-ui-font-color2);
-  font-size: var(--jp-ui-font-size0);
-  margin-top: 2px;
-  overflow-wrap: anywhere;
 }
 
 /* ── Main panel ───────────────────────────────────────────────────── */
 
 .jp-sas7bdat-main {
-  min-width: 0;
-  min-height: 0;
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  min-width: 0;
 }
 
 /* ── Toolbar ──────────────────────────────────────────────────────── */
 
 .jp-sas7bdat-toolbar {
   align-items: center;
+  background: var(--jp-layout-color2);
   border-bottom: 1px solid var(--jp-border-color2);
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  min-height: 38px;
-  padding: 4px 8px;
-  background: var(--jp-layout-color1);
+  gap: 0;
+  justify-content: space-between;
+  min-height: 36px;
+  padding: 0 8px;
 }
 
-.jp-sas7bdat-toolbar-sep {
-  flex: 1 1 auto;
+.jp-sas7bdat-toolbar-group {
+  align-items: center;
+  display: flex;
+  gap: 2px;
+}
+
+.jp-sas7bdat-toolbar-group--right {
+  gap: 4px;
+}
+
+.jp-sas7bdat-toolbar-pagination {
+  align-items: center;
+  background: var(--jp-layout-color3);
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 6px;
+  display: flex;
+  overflow: hidden;
+}
+
+.jp-sas7bdat-toolbar-divider {
+  background: var(--jp-border-color2);
+  height: 18px;
+  margin: 0 4px;
+  width: 1px;
 }
 
 .jp-sas7bdat-row-info {
-  font-size: var(--jp-ui-font-size1);
   color: var(--jp-ui-font-color2);
-  white-space: nowrap;
+  font-size: var(--jp-ui-font-size0);
   padding: 0 4px;
+  white-space: nowrap;
 }
+
+/* ── Toolbar buttons (text + icon) ────────────────────────────────── */
 
 .jp-sas7bdat-toolbar-btn {
+  align-items: center;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: var(--jp-border-radius);
+  border-radius: 6px;
   color: var(--jp-ui-font-color1);
   cursor: pointer;
-  font-size: var(--jp-ui-font-size1);
+  display: inline-flex;
   font-family: var(--jp-ui-font-family);
-  line-height: 1.4;
-  padding: 3px 8px;
-  transition: background 0.1s, border-color 0.1s;
+  font-size: var(--jp-ui-font-size1);
+  gap: 5px;
+  line-height: 1;
+  padding: 4px 8px;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
   white-space: nowrap;
 }
 
-.jp-sas7bdat-toolbar-btn:hover:not(:disabled) {
-  background: var(--jp-layout-color2);
+.jp-sas7bdat-toolbar-btn:hover {
+  background: var(--jp-layout-color3);
   border-color: var(--jp-border-color1);
 }
 
@@ -600,14 +668,62 @@ ___CSS_LOADER_EXPORT___.push([module.id, `/*
 }
 
 .jp-sas7bdat-toolbar-btn.jp-sas7bdat-toolbar-btn--active {
-  background: var(--jp-brand-color3);
-  border-color: var(--jp-brand-color2);
-  color: var(--jp-ui-font-color0);
+  background: color-mix(in srgb, var(--jp-brand-color1) 12%, transparent);
+  border-color: color-mix(in srgb, var(--jp-brand-color1) 40%, transparent);
+  color: var(--jp-brand-color0, var(--jp-brand-color1));
 }
 
 .jp-sas7bdat-toolbar-btn.jp-sas7bdat-toolbar-btn--filter-active {
-  background: var(--jp-warn-color3, #fff3cd);
-  border-color: var(--jp-warn-color2, #ffc107);
+  background: color-mix(in srgb, var(--jp-warn-color1, #f57c00) 12%, transparent);
+  border-color: color-mix(in srgb, var(--jp-warn-color1, #f57c00) 40%, transparent);
+  color: var(--jp-warn-color1, #f57c00);
+}
+
+.jp-sas7bdat-toolbar-btn.jp-sas7bdat-toolbar-btn--convert {
+  background: color-mix(in srgb, var(--jp-brand-color1) 8%, transparent);
+  border-color: color-mix(in srgb, var(--jp-brand-color1) 30%, transparent);
+  color: var(--jp-brand-color1);
+  font-weight: 600;
+}
+
+.jp-sas7bdat-toolbar-btn.jp-sas7bdat-toolbar-btn--convert:hover {
+  background: color-mix(in srgb, var(--jp-brand-color1) 18%, transparent);
+  border-color: color-mix(in srgb, var(--jp-brand-color1) 55%, transparent);
+}
+
+/* ── Icon-only buttons ────────────────────────────────────────────── */
+
+.jp-sas7bdat-icon-btn {
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--jp-ui-font-color2);
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  padding: 4px;
+  transition: background 0.12s, color 0.12s;
+}
+
+.jp-sas7bdat-icon-btn:hover {
+  background: var(--jp-layout-color3);
+  color: var(--jp-ui-font-color0);
+}
+
+.jp-sas7bdat-icon-btn--nav {
+  border-radius: 0;
+  color: var(--jp-ui-font-color1);
+  padding: 5px 7px;
+}
+
+.jp-sas7bdat-icon-btn--nav:disabled {
+  color: var(--jp-ui-font-color3);
+  cursor: default;
+}
+
+.jp-sas7bdat-icon-btn--nav:not(:disabled):hover {
+  background: var(--jp-layout-color4, var(--jp-layout-color3));
   color: var(--jp-ui-font-color0);
 }
 
@@ -626,35 +742,79 @@ ___CSS_LOADER_EXPORT___.push([module.id, `/*
   min-width: 100%;
 }
 
-.jp-sas7bdat-table th,
-.jp-sas7bdat-table td {
-  border-bottom: 1px solid var(--jp-border-color3);
-  border-right: 1px solid var(--jp-border-color3);
-  max-width: 360px;
-  overflow: hidden;
-  padding: 4px 8px;
-  text-align: left;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.jp-sas7bdat-table thead tr {
+  border-bottom: 2px solid var(--jp-border-color1);
 }
 
 .jp-sas7bdat-table th {
   background: var(--jp-layout-color2);
-  font-weight: 600;
+  padding: 0;
   position: sticky;
+  text-align: left;
   top: 0;
   z-index: 1;
 }
 
+.jp-sas7bdat-th-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  max-width: 240px;
+  overflow: hidden;
+  padding: 6px 10px;
+}
+
+.jp-sas7bdat-th-name {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.jp-sas7bdat-th-label {
+  color: var(--jp-ui-font-color2);
+  font-family: var(--jp-ui-font-family);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.jp-sas7bdat-table td {
+  border-bottom: 1px solid var(--jp-border-color3);
+  max-width: 320px;
+  overflow: hidden;
+  padding: 4px 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jp-sas7bdat-table tbody tr:nth-child(even) td {
+  background: color-mix(in srgb, var(--jp-layout-color2) 50%, transparent);
+}
+
 .jp-sas7bdat-table tbody tr:hover td {
-  background: var(--jp-layout-color2);
+  background: color-mix(in srgb, var(--jp-brand-color3, var(--jp-layout-color3)) 60%, transparent);
 }
 
 /* ── State messages ───────────────────────────────────────────────── */
 
-.jp-sas7bdat-loading,
-.jp-sas7bdat-error {
-  padding: 16px;
+.jp-sas7bdat-state {
+  align-items: center;
+  display: flex;
+  font-size: var(--jp-ui-font-size1);
+  height: 100%;
+  justify-content: center;
+}
+
+.jp-sas7bdat-loading {
+  color: var(--jp-ui-font-color2);
 }
 
 .jp-sas7bdat-error {
@@ -667,7 +827,7 @@ ___CSS_LOADER_EXPORT___.push([module.id, `/*
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-width: 380px;
+  min-width: 400px;
   padding: 4px 0;
 }
 
@@ -719,7 +879,7 @@ ___CSS_LOADER_EXPORT___.push([module.id, `/*
     border-right: 0;
   }
 }
-`, "",{"version":3,"sources":["webpack://./style/base.css"],"names":[],"mappings":"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","sourcesContent":["/*\n    See the JupyterLab Developer Guide for useful CSS Patterns:\n\n    https://jupyterlab.readthedocs.io/en/stable/developer/css.html\n*/\n\n/* ── Root viewer ──────────────────────────────────────────────────── */\n\n.jp-sas7bdat-viewer {\n  color: var(--jp-ui-font-color1);\n  background: var(--jp-layout-color1);\n  height: 100%;\n  overflow: hidden;\n}\n\n/* ── Layout: sidebar collapsed by default, visible when modifier present ── */\n\n.jp-sas7bdat-layout {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr);\n  height: 100%;\n  min-height: 0;\n}\n\n.jp-sas7bdat-layout.jp-sas7bdat-layout--sidebar-open {\n  grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);\n}\n\n/* ── Sidebar ──────────────────────────────────────────────────────── */\n\n.jp-sas7bdat-sidebar {\n  border-right: 1px solid var(--jp-border-color2);\n  background: var(--jp-layout-color2);\n  min-height: 0;\n  overflow: hidden;\n  display: flex;\n  flex-direction: column;\n}\n\n.jp-sas7bdat-sidebar-header {\n  display: flex;\n  align-items: center;\n  gap: 4px;\n  padding: 6px 8px 6px 12px;\n  border-bottom: 1px solid var(--jp-border-color2);\n  min-height: 38px;\n}\n\n.jp-sas7bdat-sidebar-title {\n  flex: 1 1 auto;\n  font-size: var(--jp-ui-font-size1);\n  font-weight: 600;\n  color: var(--jp-ui-font-color1);\n}\n\n.jp-sas7bdat-close-btn {\n  background: transparent;\n  border: none;\n  border-radius: 4px;\n  color: var(--jp-ui-font-color2);\n  cursor: pointer;\n  font-size: 12px;\n  line-height: 1;\n  padding: 3px 5px;\n  transition: background 0.1s, color 0.1s;\n}\n\n.jp-sas7bdat-close-btn:hover {\n  background: var(--jp-layout-color3);\n  color: var(--jp-ui-font-color0);\n}\n\n/* ── Variable list ────────────────────────────────────────────────── */\n\n.jp-sas7bdat-variable-list {\n  overflow-y: auto;\n  padding: 6px 8px;\n}\n\n.jp-sas7bdat-variable {\n  display: flex;\n  align-items: flex-start;\n  gap: 8px;\n  padding: 6px 8px;\n  border: 1px solid transparent;\n  border-radius: 4px;\n  cursor: pointer;\n}\n\n.jp-sas7bdat-variable + .jp-sas7bdat-variable {\n  margin-top: 2px;\n}\n\n.jp-sas7bdat-variable:hover {\n  border-color: var(--jp-border-color2);\n  background: var(--jp-layout-color1);\n}\n\n.jp-sas7bdat-variable input[type='checkbox'] {\n  flex-shrink: 0;\n  margin-top: 2px;\n  accent-color: var(--jp-brand-color1);\n  cursor: pointer;\n}\n\n.jp-sas7bdat-variable-info {\n  min-width: 0;\n}\n\n.jp-sas7bdat-variable-name {\n  font-weight: 600;\n  color: var(--jp-content-font-color1);\n  overflow-wrap: anywhere;\n}\n\n.jp-sas7bdat-variable-meta,\n.jp-sas7bdat-variable-label {\n  color: var(--jp-ui-font-color2);\n  font-size: var(--jp-ui-font-size0);\n  margin-top: 2px;\n  overflow-wrap: anywhere;\n}\n\n/* ── Main panel ───────────────────────────────────────────────────── */\n\n.jp-sas7bdat-main {\n  min-width: 0;\n  min-height: 0;\n  display: flex;\n  flex-direction: column;\n}\n\n/* ── Toolbar ──────────────────────────────────────────────────────── */\n\n.jp-sas7bdat-toolbar {\n  align-items: center;\n  border-bottom: 1px solid var(--jp-border-color2);\n  display: flex;\n  flex-wrap: wrap;\n  gap: 4px;\n  min-height: 38px;\n  padding: 4px 8px;\n  background: var(--jp-layout-color1);\n}\n\n.jp-sas7bdat-toolbar-sep {\n  flex: 1 1 auto;\n}\n\n.jp-sas7bdat-row-info {\n  font-size: var(--jp-ui-font-size1);\n  color: var(--jp-ui-font-color2);\n  white-space: nowrap;\n  padding: 0 4px;\n}\n\n.jp-sas7bdat-toolbar-btn {\n  background: transparent;\n  border: 1px solid transparent;\n  border-radius: var(--jp-border-radius);\n  color: var(--jp-ui-font-color1);\n  cursor: pointer;\n  font-size: var(--jp-ui-font-size1);\n  font-family: var(--jp-ui-font-family);\n  line-height: 1.4;\n  padding: 3px 8px;\n  transition: background 0.1s, border-color 0.1s;\n  white-space: nowrap;\n}\n\n.jp-sas7bdat-toolbar-btn:hover:not(:disabled) {\n  background: var(--jp-layout-color2);\n  border-color: var(--jp-border-color1);\n}\n\n.jp-sas7bdat-toolbar-btn:disabled {\n  color: var(--jp-ui-font-color3);\n  cursor: default;\n}\n\n.jp-sas7bdat-toolbar-btn.jp-sas7bdat-toolbar-btn--active {\n  background: var(--jp-brand-color3);\n  border-color: var(--jp-brand-color2);\n  color: var(--jp-ui-font-color0);\n}\n\n.jp-sas7bdat-toolbar-btn.jp-sas7bdat-toolbar-btn--filter-active {\n  background: var(--jp-warn-color3, #fff3cd);\n  border-color: var(--jp-warn-color2, #ffc107);\n  color: var(--jp-ui-font-color0);\n}\n\n/* ── Table ────────────────────────────────────────────────────────── */\n\n.jp-sas7bdat-table-wrap {\n  flex: 1 1 auto;\n  overflow: auto;\n}\n\n.jp-sas7bdat-table {\n  border-collapse: collapse;\n  color: var(--jp-content-font-color1);\n  font-family: var(--jp-code-font-family);\n  font-size: var(--jp-code-font-size);\n  min-width: 100%;\n}\n\n.jp-sas7bdat-table th,\n.jp-sas7bdat-table td {\n  border-bottom: 1px solid var(--jp-border-color3);\n  border-right: 1px solid var(--jp-border-color3);\n  max-width: 360px;\n  overflow: hidden;\n  padding: 4px 8px;\n  text-align: left;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.jp-sas7bdat-table th {\n  background: var(--jp-layout-color2);\n  font-weight: 600;\n  position: sticky;\n  top: 0;\n  z-index: 1;\n}\n\n.jp-sas7bdat-table tbody tr:hover td {\n  background: var(--jp-layout-color2);\n}\n\n/* ── State messages ───────────────────────────────────────────────── */\n\n.jp-sas7bdat-loading,\n.jp-sas7bdat-error {\n  padding: 16px;\n}\n\n.jp-sas7bdat-error {\n  color: var(--jp-error-color1);\n}\n\n/* ── WHERE filter dialog ──────────────────────────────────────────── */\n\n.jp-sas7bdat-where-dialog {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n  min-width: 380px;\n  padding: 4px 0;\n}\n\n.jp-sas7bdat-where-label {\n  color: var(--jp-ui-font-color1);\n  font-size: var(--jp-ui-font-size1);\n  margin: 0;\n}\n\n.jp-sas7bdat-where-input {\n  box-sizing: border-box;\n  font-family: var(--jp-code-font-family);\n  font-size: var(--jp-code-font-size);\n  resize: vertical;\n  width: 100%;\n}\n\n.jp-sas7bdat-where-hint {\n  color: var(--jp-ui-font-color2);\n  font-size: var(--jp-ui-font-size0);\n  margin: 0;\n}\n\n/* ── Convert dialog ───────────────────────────────────────────────── */\n\n.jp-sas7bdat-convert-dialog label {\n  display: flex;\n  flex-direction: column;\n  gap: 4px;\n  margin: 0 0 12px;\n}\n\n.jp-sas7bdat-convert-dialog input,\n.jp-sas7bdat-convert-dialog select {\n  box-sizing: border-box;\n  width: 100%;\n}\n\n/* ── Narrow-viewport responsive layout ───────────────────────────── */\n\n@media (width <= 700px) {\n  .jp-sas7bdat-layout.jp-sas7bdat-layout--sidebar-open {\n    grid-template-columns: 1fr;\n    grid-template-rows: minmax(120px, 32%) minmax(0, 1fr);\n  }\n\n  .jp-sas7bdat-sidebar {\n    border-bottom: 1px solid var(--jp-border-color2);\n    border-right: 0;\n  }\n}\n"],"sourceRoot":""}]);
+`, "",{"version":3,"sources":["webpack://./style/base.css"],"names":[],"mappings":"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","sourcesContent":["/*\n    See the JupyterLab Developer Guide for useful CSS Patterns:\n    https://jupyterlab.readthedocs.io/en/stable/developer/css.html\n*/\n\n/* ── Root viewer ──────────────────────────────────────────────────── */\n\n.jp-sas7bdat-viewer {\n  color: var(--jp-ui-font-color1);\n  background: var(--jp-layout-color1);\n  height: 100%;\n  overflow: hidden;\n  font-family: var(--jp-ui-font-family);\n}\n\n/* ── Layout ───────────────────────────────────────────────────────── */\n\n.jp-sas7bdat-layout {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr);\n  height: 100%;\n  min-height: 0;\n}\n\n.jp-sas7bdat-layout.jp-sas7bdat-layout--sidebar-open {\n  grid-template-columns: 240px minmax(0, 1fr);\n}\n\n/* ── Sidebar ──────────────────────────────────────────────────────── */\n\n.jp-sas7bdat-sidebar {\n  background: var(--jp-layout-color2);\n  border-right: 1px solid var(--jp-border-color2);\n  display: flex;\n  flex-direction: column;\n  min-height: 0;\n  overflow: hidden;\n}\n\n.jp-sas7bdat-sidebar-header {\n  align-items: center;\n  border-bottom: 1px solid var(--jp-border-color2);\n  display: flex;\n  gap: 6px;\n  min-height: 36px;\n  padding: 0 8px 0 12px;\n}\n\n.jp-sas7bdat-sidebar-title {\n  color: var(--jp-ui-font-color0);\n  flex: 1 1 auto;\n  font-size: 11px;\n  font-weight: 700;\n  letter-spacing: 0.06em;\n  text-transform: uppercase;\n}\n\n.jp-sas7bdat-sidebar-count {\n  background: var(--jp-layout-color3);\n  border-radius: 10px;\n  color: var(--jp-ui-font-color2);\n  font-size: 10px;\n  font-weight: 600;\n  padding: 1px 6px;\n}\n\n/* ── Variable list ────────────────────────────────────────────────── */\n\n.jp-sas7bdat-variable-list {\n  overflow-y: auto;\n  padding: 4px;\n}\n\n.jp-sas7bdat-variable {\n  align-items: flex-start;\n  border-radius: 6px;\n  cursor: pointer;\n  display: flex;\n  gap: 8px;\n  padding: 6px 8px;\n  transition: background 0.12s;\n}\n\n.jp-sas7bdat-variable:hover {\n  background: var(--jp-layout-color3);\n}\n\n.jp-sas7bdat-variable--hidden {\n  opacity: 0.45;\n}\n\n.jp-sas7bdat-variable input[type='checkbox'] {\n  accent-color: var(--jp-brand-color1);\n  cursor: pointer;\n  flex-shrink: 0;\n  margin-top: 3px;\n}\n\n.jp-sas7bdat-variable-info {\n  min-width: 0;\n}\n\n.jp-sas7bdat-variable-name-row {\n  align-items: center;\n  display: flex;\n  gap: 6px;\n}\n\n.jp-sas7bdat-variable-name {\n  color: var(--jp-content-font-color1);\n  font-size: var(--jp-ui-font-size1);\n  font-weight: 600;\n  min-width: 0;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.jp-sas7bdat-variable-label {\n  color: var(--jp-ui-font-color2);\n  font-size: 11px;\n  margin-top: 2px;\n  overflow-wrap: anywhere;\n}\n\n.jp-sas7bdat-variable-format {\n  color: var(--jp-ui-font-color3);\n  font-family: var(--jp-code-font-family);\n  font-size: 10px;\n  margin-top: 1px;\n}\n\n/* ── Type badges ──────────────────────────────────────────────────── */\n\n.jp-sas7bdat-type-badge {\n  border-radius: 3px;\n  flex-shrink: 0;\n  font-family: var(--jp-code-font-family);\n  font-size: 9px;\n  font-weight: 700;\n  letter-spacing: 0.04em;\n  padding: 1px 4px;\n}\n\n.jp-sas7bdat-type-num {\n  background: color-mix(in srgb, var(--jp-brand-color1) 15%, transparent);\n  color: var(--jp-brand-color1);\n}\n\n.jp-sas7bdat-type-str {\n  background: color-mix(in srgb, var(--jp-success-color1, #2e7d32) 15%, transparent);\n  color: var(--jp-success-color1, #2e7d32);\n}\n\n.jp-sas7bdat-type-date {\n  background: color-mix(in srgb, var(--jp-warn-color1, #f57c00) 15%, transparent);\n  color: var(--jp-warn-color1, #f57c00);\n}\n\n.jp-sas7bdat-type-other {\n  background: var(--jp-layout-color3);\n  color: var(--jp-ui-font-color2);\n}\n\n/* ── Main panel ───────────────────────────────────────────────────── */\n\n.jp-sas7bdat-main {\n  display: flex;\n  flex-direction: column;\n  min-height: 0;\n  min-width: 0;\n}\n\n/* ── Toolbar ──────────────────────────────────────────────────────── */\n\n.jp-sas7bdat-toolbar {\n  align-items: center;\n  background: var(--jp-layout-color2);\n  border-bottom: 1px solid var(--jp-border-color2);\n  display: flex;\n  gap: 0;\n  justify-content: space-between;\n  min-height: 36px;\n  padding: 0 8px;\n}\n\n.jp-sas7bdat-toolbar-group {\n  align-items: center;\n  display: flex;\n  gap: 2px;\n}\n\n.jp-sas7bdat-toolbar-group--right {\n  gap: 4px;\n}\n\n.jp-sas7bdat-toolbar-pagination {\n  align-items: center;\n  background: var(--jp-layout-color3);\n  border: 1px solid var(--jp-border-color2);\n  border-radius: 6px;\n  display: flex;\n  overflow: hidden;\n}\n\n.jp-sas7bdat-toolbar-divider {\n  background: var(--jp-border-color2);\n  height: 18px;\n  margin: 0 4px;\n  width: 1px;\n}\n\n.jp-sas7bdat-row-info {\n  color: var(--jp-ui-font-color2);\n  font-size: var(--jp-ui-font-size0);\n  padding: 0 4px;\n  white-space: nowrap;\n}\n\n/* ── Toolbar buttons (text + icon) ────────────────────────────────── */\n\n.jp-sas7bdat-toolbar-btn {\n  align-items: center;\n  background: transparent;\n  border: 1px solid transparent;\n  border-radius: 6px;\n  color: var(--jp-ui-font-color1);\n  cursor: pointer;\n  display: inline-flex;\n  font-family: var(--jp-ui-font-family);\n  font-size: var(--jp-ui-font-size1);\n  gap: 5px;\n  line-height: 1;\n  padding: 4px 8px;\n  transition: background 0.12s, border-color 0.12s, color 0.12s;\n  white-space: nowrap;\n}\n\n.jp-sas7bdat-toolbar-btn:hover {\n  background: var(--jp-layout-color3);\n  border-color: var(--jp-border-color1);\n}\n\n.jp-sas7bdat-toolbar-btn:disabled {\n  color: var(--jp-ui-font-color3);\n  cursor: default;\n}\n\n.jp-sas7bdat-toolbar-btn.jp-sas7bdat-toolbar-btn--active {\n  background: color-mix(in srgb, var(--jp-brand-color1) 12%, transparent);\n  border-color: color-mix(in srgb, var(--jp-brand-color1) 40%, transparent);\n  color: var(--jp-brand-color0, var(--jp-brand-color1));\n}\n\n.jp-sas7bdat-toolbar-btn.jp-sas7bdat-toolbar-btn--filter-active {\n  background: color-mix(in srgb, var(--jp-warn-color1, #f57c00) 12%, transparent);\n  border-color: color-mix(in srgb, var(--jp-warn-color1, #f57c00) 40%, transparent);\n  color: var(--jp-warn-color1, #f57c00);\n}\n\n.jp-sas7bdat-toolbar-btn.jp-sas7bdat-toolbar-btn--convert {\n  background: color-mix(in srgb, var(--jp-brand-color1) 8%, transparent);\n  border-color: color-mix(in srgb, var(--jp-brand-color1) 30%, transparent);\n  color: var(--jp-brand-color1);\n  font-weight: 600;\n}\n\n.jp-sas7bdat-toolbar-btn.jp-sas7bdat-toolbar-btn--convert:hover {\n  background: color-mix(in srgb, var(--jp-brand-color1) 18%, transparent);\n  border-color: color-mix(in srgb, var(--jp-brand-color1) 55%, transparent);\n}\n\n/* ── Icon-only buttons ────────────────────────────────────────────── */\n\n.jp-sas7bdat-icon-btn {\n  align-items: center;\n  background: transparent;\n  border: none;\n  border-radius: 4px;\n  color: var(--jp-ui-font-color2);\n  cursor: pointer;\n  display: inline-flex;\n  justify-content: center;\n  padding: 4px;\n  transition: background 0.12s, color 0.12s;\n}\n\n.jp-sas7bdat-icon-btn:hover {\n  background: var(--jp-layout-color3);\n  color: var(--jp-ui-font-color0);\n}\n\n.jp-sas7bdat-icon-btn--nav {\n  border-radius: 0;\n  color: var(--jp-ui-font-color1);\n  padding: 5px 7px;\n}\n\n.jp-sas7bdat-icon-btn--nav:disabled {\n  color: var(--jp-ui-font-color3);\n  cursor: default;\n}\n\n.jp-sas7bdat-icon-btn--nav:not(:disabled):hover {\n  background: var(--jp-layout-color4, var(--jp-layout-color3));\n  color: var(--jp-ui-font-color0);\n}\n\n/* ── Table ────────────────────────────────────────────────────────── */\n\n.jp-sas7bdat-table-wrap {\n  flex: 1 1 auto;\n  overflow: auto;\n}\n\n.jp-sas7bdat-table {\n  border-collapse: collapse;\n  color: var(--jp-content-font-color1);\n  font-family: var(--jp-code-font-family);\n  font-size: var(--jp-code-font-size);\n  min-width: 100%;\n}\n\n.jp-sas7bdat-table thead tr {\n  border-bottom: 2px solid var(--jp-border-color1);\n}\n\n.jp-sas7bdat-table th {\n  background: var(--jp-layout-color2);\n  padding: 0;\n  position: sticky;\n  text-align: left;\n  top: 0;\n  z-index: 1;\n}\n\n.jp-sas7bdat-th-inner {\n  display: flex;\n  flex-direction: column;\n  gap: 1px;\n  max-width: 240px;\n  overflow: hidden;\n  padding: 6px 10px;\n}\n\n.jp-sas7bdat-th-name {\n  font-size: 11px;\n  font-weight: 700;\n  letter-spacing: 0.04em;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  text-transform: uppercase;\n  white-space: nowrap;\n}\n\n.jp-sas7bdat-th-label {\n  color: var(--jp-ui-font-color2);\n  font-family: var(--jp-ui-font-family);\n  font-size: 10px;\n  font-weight: 400;\n  letter-spacing: 0;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  text-transform: none;\n  white-space: nowrap;\n}\n\n.jp-sas7bdat-table td {\n  border-bottom: 1px solid var(--jp-border-color3);\n  max-width: 320px;\n  overflow: hidden;\n  padding: 4px 10px;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.jp-sas7bdat-table tbody tr:nth-child(even) td {\n  background: color-mix(in srgb, var(--jp-layout-color2) 50%, transparent);\n}\n\n.jp-sas7bdat-table tbody tr:hover td {\n  background: color-mix(in srgb, var(--jp-brand-color3, var(--jp-layout-color3)) 60%, transparent);\n}\n\n/* ── State messages ───────────────────────────────────────────────── */\n\n.jp-sas7bdat-state {\n  align-items: center;\n  display: flex;\n  font-size: var(--jp-ui-font-size1);\n  height: 100%;\n  justify-content: center;\n}\n\n.jp-sas7bdat-loading {\n  color: var(--jp-ui-font-color2);\n}\n\n.jp-sas7bdat-error {\n  color: var(--jp-error-color1);\n}\n\n/* ── WHERE filter dialog ──────────────────────────────────────────── */\n\n.jp-sas7bdat-where-dialog {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n  min-width: 400px;\n  padding: 4px 0;\n}\n\n.jp-sas7bdat-where-label {\n  color: var(--jp-ui-font-color1);\n  font-size: var(--jp-ui-font-size1);\n  margin: 0;\n}\n\n.jp-sas7bdat-where-input {\n  box-sizing: border-box;\n  font-family: var(--jp-code-font-family);\n  font-size: var(--jp-code-font-size);\n  resize: vertical;\n  width: 100%;\n}\n\n.jp-sas7bdat-where-hint {\n  color: var(--jp-ui-font-color2);\n  font-size: var(--jp-ui-font-size0);\n  margin: 0;\n}\n\n/* ── Convert dialog ───────────────────────────────────────────────── */\n\n.jp-sas7bdat-convert-dialog label {\n  display: flex;\n  flex-direction: column;\n  gap: 4px;\n  margin: 0 0 12px;\n}\n\n.jp-sas7bdat-convert-dialog input,\n.jp-sas7bdat-convert-dialog select {\n  box-sizing: border-box;\n  width: 100%;\n}\n\n/* ── Narrow-viewport responsive layout ───────────────────────────── */\n\n@media (width <= 700px) {\n  .jp-sas7bdat-layout.jp-sas7bdat-layout--sidebar-open {\n    grid-template-columns: 1fr;\n    grid-template-rows: minmax(120px, 32%) minmax(0, 1fr);\n  }\n\n  .jp-sas7bdat-sidebar {\n    border-bottom: 1px solid var(--jp-border-color2);\n    border-right: 0;\n  }\n}\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -781,4 +941,4 @@ var update = _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js
 /***/ }
 
 }]);
-//# sourceMappingURL=style_index_js.2a479056b148218faf5e.js.map
+//# sourceMappingURL=style_index_js.391c991c100735b20a06.js.map

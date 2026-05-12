@@ -116,6 +116,74 @@ const FACTORY = 'SAS7BDAT Viewer';
 const FILE_TYPE = 'sas7bdat';
 const PAGE_SIZE = 100;
 const SUPPORTED_INPUTS = ['.sas7bdat', '.csv', '.tsv', '.json', '.parquet'];
+// ── Inline SVG icons ───────────────────────────────────────────────
+const IconColumns = () => (react__WEBPACK_IMPORTED_MODULE_5__.createElement("svg", { width: "14", height: "14", viewBox: "0 0 16 16", fill: "currentColor", "aria-hidden": "true" },
+    react__WEBPACK_IMPORTED_MODULE_5__.createElement("path", { d: "M1 2.5A.5.5 0 0 1 1.5 2h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 2.5zm0 4A.5.5 0 0 1 1.5 6h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 6.5zm0 4a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5z" })));
+const IconFilter = () => (react__WEBPACK_IMPORTED_MODULE_5__.createElement("svg", { width: "13", height: "13", viewBox: "0 0 16 16", fill: "currentColor", "aria-hidden": "true" },
+    react__WEBPACK_IMPORTED_MODULE_5__.createElement("path", { d: "M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2z" })));
+const IconConvert = () => (react__WEBPACK_IMPORTED_MODULE_5__.createElement("svg", { width: "13", height: "13", viewBox: "0 0 16 16", fill: "currentColor", "aria-hidden": "true" },
+    react__WEBPACK_IMPORTED_MODULE_5__.createElement("path", { d: "M1 11.5a.5.5 0 0 0 .5.5h11.793l-3.147 3.146a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 11H1.5a.5.5 0 0 0-.5.5zm14-7a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 1 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H14.5a.5.5 0 0 1 .5.5z" })));
+const IconChevronLeft = () => (react__WEBPACK_IMPORTED_MODULE_5__.createElement("svg", { width: "12", height: "12", viewBox: "0 0 16 16", fill: "currentColor", "aria-hidden": "true" },
+    react__WEBPACK_IMPORTED_MODULE_5__.createElement("path", { fillRule: "evenodd", d: "M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" })));
+const IconChevronRight = () => (react__WEBPACK_IMPORTED_MODULE_5__.createElement("svg", { width: "12", height: "12", viewBox: "0 0 16 16", fill: "currentColor", "aria-hidden": "true" },
+    react__WEBPACK_IMPORTED_MODULE_5__.createElement("path", { fillRule: "evenodd", d: "M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" })));
+const IconClose = () => (react__WEBPACK_IMPORTED_MODULE_5__.createElement("svg", { width: "11", height: "11", viewBox: "0 0 16 16", fill: "currentColor", "aria-hidden": "true" },
+    react__WEBPACK_IMPORTED_MODULE_5__.createElement("path", { d: "M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854z" })));
+// ── Helpers ────────────────────────────────────────────────────────
+function formatCell(value) {
+    if (value === null || value === undefined) {
+        return '';
+    }
+    if (typeof value === 'object') {
+        return JSON.stringify(value);
+    }
+    return String(value);
+}
+function typeBadgeClass(type) {
+    const t = type.toLowerCase();
+    if (t.startsWith('float') || t.startsWith('int') || t.startsWith('uint')) {
+        return 'jp-sas7bdat-type-num';
+    }
+    if (t === 'object' || t.startsWith('str')) {
+        return 'jp-sas7bdat-type-str';
+    }
+    if (t.startsWith('datetime') || t.startsWith('date')) {
+        return 'jp-sas7bdat-type-date';
+    }
+    return 'jp-sas7bdat-type-other';
+}
+function typeBadgeLabel(type) {
+    const t = type.toLowerCase();
+    if (t.startsWith('float'))
+        return 'FLT';
+    if (t.startsWith('int') || t.startsWith('uint'))
+        return 'INT';
+    if (t === 'object')
+        return 'STR';
+    if (t.startsWith('datetime'))
+        return 'DT';
+    if (t.startsWith('date'))
+        return 'DATE';
+    if (t.startsWith('bool'))
+        return 'BOOL';
+    return type.substring(0, 4).toUpperCase();
+}
+function isSupportedInput(path) {
+    const lower = path.toLowerCase();
+    return SUPPORTED_INPUTS.some(ext => lower.endsWith(ext));
+}
+function selectedPath(browserFactory) {
+    const widget = browserFactory.tracker.currentWidget;
+    if (!widget) {
+        return null;
+    }
+    const item = widget.selectedItems().next();
+    if (item.done) {
+        return null;
+    }
+    return item.value.path;
+}
+// ── WHERE filter dialog widget ─────────────────────────────────────
 class WhereFilterWidget extends _lumino_widgets__WEBPACK_IMPORTED_MODULE_4__.Widget {
     constructor(initialValue) {
         const node = document.createElement('div');
@@ -151,6 +219,7 @@ class WhereFilterWidget extends _lumino_widgets__WEBPACK_IMPORTED_MODULE_4__.Wid
         }
     }
 }
+// ── Dataset viewer widget ──────────────────────────────────────────
 class Sas7bdatWidget extends _jupyterlab_apputils__WEBPACK_IMPORTED_MODULE_0__.ReactWidget {
     constructor(context, serverSettings) {
         super();
@@ -170,17 +239,19 @@ class Sas7bdatWidget extends _jupyterlab_apputils__WEBPACK_IMPORTED_MODULE_0__.R
     }
     render() {
         if (this.error) {
-            return (react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-error" },
-                "Failed to load ",
-                this.context.path,
-                ": ",
-                this.error));
+            return (react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-state jp-sas7bdat-error" },
+                react__WEBPACK_IMPORTED_MODULE_5__.createElement("span", null,
+                    "Failed to load ",
+                    this.context.path,
+                    ": ",
+                    this.error)));
         }
         if (!this.data) {
-            return (react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-loading" },
-                "Loading ",
-                this.context.path,
-                "\u2026"));
+            return (react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-state jp-sas7bdat-loading" },
+                react__WEBPACK_IMPORTED_MODULE_5__.createElement("span", null,
+                    "Loading ",
+                    this.context.path,
+                    "\u2026")));
         }
         const { offset, rows, total_rows, columns } = this.data;
         const end = Math.min(offset + rows.length, total_rows);
@@ -192,43 +263,67 @@ class Sas7bdatWidget extends _jupyterlab_apputils__WEBPACK_IMPORTED_MODULE_0__.R
             this.sidebarOpen && (react__WEBPACK_IMPORTED_MODULE_5__.createElement("aside", { className: "jp-sas7bdat-sidebar" },
                 react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-sidebar-header" },
                     react__WEBPACK_IMPORTED_MODULE_5__.createElement("span", { className: "jp-sas7bdat-sidebar-title" }, "Variables"),
-                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("button", { className: "jp-sas7bdat-close-btn", title: "Close panel", onClick: () => {
+                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("span", { className: "jp-sas7bdat-sidebar-count" },
+                        columns.length - this.hiddenColumns.size,
+                        "/",
+                        columns.length),
+                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("button", { className: "jp-sas7bdat-icon-btn", title: "Close panel", onClick: () => {
                             this.sidebarOpen = false;
                             this.update();
-                        } }, "\u2715")),
-                react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-variable-list" }, columns.map(col => (react__WEBPACK_IMPORTED_MODULE_5__.createElement("label", { className: "jp-sas7bdat-variable", key: col.name },
-                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("input", { type: "checkbox", checked: !this.hiddenColumns.has(col.name), onChange: () => this.toggleColumn(col.name) }),
-                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-variable-info" },
-                        react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-variable-name" }, col.name),
-                        react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-variable-meta" },
-                            col.type,
-                            col.format ? ` · ${col.format}` : ''),
-                        col.label ? (react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-variable-label" }, col.label)) : null))))))),
+                        } },
+                        react__WEBPACK_IMPORTED_MODULE_5__.createElement(IconClose, null))),
+                react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-variable-list" }, columns.map(col => {
+                    const visible = !this.hiddenColumns.has(col.name);
+                    return (react__WEBPACK_IMPORTED_MODULE_5__.createElement("label", { className: 'jp-sas7bdat-variable' +
+                            (visible ? '' : ' jp-sas7bdat-variable--hidden'), key: col.name },
+                        react__WEBPACK_IMPORTED_MODULE_5__.createElement("input", { type: "checkbox", checked: visible, onChange: () => this.toggleColumn(col.name) }),
+                        react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-variable-info" },
+                            react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-variable-name-row" },
+                                react__WEBPACK_IMPORTED_MODULE_5__.createElement("span", { className: "jp-sas7bdat-variable-name" }, col.name),
+                                react__WEBPACK_IMPORTED_MODULE_5__.createElement("span", { className: `jp-sas7bdat-type-badge ${typeBadgeClass(col.type)}` }, typeBadgeLabel(col.type))),
+                            col.label ? (react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-variable-label" }, col.label)) : null,
+                            col.format ? (react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-variable-format" }, col.format)) : null)));
+                })))),
             react__WEBPACK_IMPORTED_MODULE_5__.createElement("main", { className: "jp-sas7bdat-main" },
                 react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-toolbar" },
-                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("button", { className: 'jp-sas7bdat-toolbar-btn' +
-                            (this.sidebarOpen ? ' jp-sas7bdat-toolbar-btn--active' : ''), title: this.sidebarOpen ? 'Hide variables panel' : 'Show variables panel', onClick: () => {
-                            this.sidebarOpen = !this.sidebarOpen;
-                            this.update();
-                        } }, "\u2630 Variables"),
-                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("button", { className: 'jp-sas7bdat-toolbar-btn' +
-                            (this.activeWhere ? ' jp-sas7bdat-toolbar-btn--filter-active' : ''), title: this.activeWhere
-                            ? `Active filter: ${this.activeWhere}`
-                            : 'Filter rows', onClick: () => void this.showWhereDialog() },
-                        "\u2298 Filter",
-                        this.activeWhere ? ' ●' : ''),
-                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("span", { className: "jp-sas7bdat-toolbar-sep" }),
-                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("span", { className: "jp-sas7bdat-row-info" }, this.loading
-                        ? 'Loading…'
-                        : total_rows === 0
-                            ? 'No rows'
-                            : `Rows ${offset + 1}–${end} of ${total_rows}`),
-                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("button", { className: "jp-sas7bdat-toolbar-btn", disabled: !hasPrevious || this.loading, onClick: () => void this.loadPage(Math.max(0, offset - PAGE_SIZE)) }, "\u25C2 Prev"),
-                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("button", { className: "jp-sas7bdat-toolbar-btn", disabled: !hasNext || this.loading, onClick: () => void this.loadPage(offset + PAGE_SIZE) }, "Next \u25B8")),
+                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-toolbar-group" },
+                        react__WEBPACK_IMPORTED_MODULE_5__.createElement("button", { className: 'jp-sas7bdat-toolbar-btn' +
+                                (this.sidebarOpen ? ' jp-sas7bdat-toolbar-btn--active' : ''), title: this.sidebarOpen ? 'Hide variables panel' : 'Show variables panel', onClick: () => {
+                                this.sidebarOpen = !this.sidebarOpen;
+                                this.update();
+                            } },
+                            react__WEBPACK_IMPORTED_MODULE_5__.createElement(IconColumns, null),
+                            react__WEBPACK_IMPORTED_MODULE_5__.createElement("span", null, "Variables")),
+                        react__WEBPACK_IMPORTED_MODULE_5__.createElement("button", { className: 'jp-sas7bdat-toolbar-btn' +
+                                (this.activeWhere ? ' jp-sas7bdat-toolbar-btn--filter-active' : ''), title: this.activeWhere
+                                ? `Active filter: ${this.activeWhere}`
+                                : 'Filter rows', onClick: () => void this.showWhereDialog() },
+                            react__WEBPACK_IMPORTED_MODULE_5__.createElement(IconFilter, null),
+                            react__WEBPACK_IMPORTED_MODULE_5__.createElement("span", null,
+                                "Filter",
+                                this.activeWhere ? ' ●' : ''))),
+                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-toolbar-group jp-sas7bdat-toolbar-group--right" },
+                        react__WEBPACK_IMPORTED_MODULE_5__.createElement("span", { className: "jp-sas7bdat-row-info" }, this.loading
+                            ? 'Loading…'
+                            : total_rows === 0
+                                ? 'No rows'
+                                : `${offset + 1}–${end} of ${total_rows.toLocaleString()}`),
+                        react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-toolbar-pagination" },
+                            react__WEBPACK_IMPORTED_MODULE_5__.createElement("button", { className: "jp-sas7bdat-icon-btn jp-sas7bdat-icon-btn--nav", disabled: !hasPrevious || this.loading, title: "Previous page", onClick: () => void this.loadPage(Math.max(0, offset - PAGE_SIZE)) },
+                                react__WEBPACK_IMPORTED_MODULE_5__.createElement(IconChevronLeft, null)),
+                            react__WEBPACK_IMPORTED_MODULE_5__.createElement("button", { className: "jp-sas7bdat-icon-btn jp-sas7bdat-icon-btn--nav", disabled: !hasNext || this.loading, title: "Next page", onClick: () => void this.loadPage(offset + PAGE_SIZE) },
+                                react__WEBPACK_IMPORTED_MODULE_5__.createElement(IconChevronRight, null))),
+                        react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-toolbar-divider" }),
+                        react__WEBPACK_IMPORTED_MODULE_5__.createElement("button", { className: "jp-sas7bdat-toolbar-btn jp-sas7bdat-toolbar-btn--convert", title: "Convert this dataset to another format", onClick: () => void showConvertDialog(this.context.path, this.serverSettings) },
+                            react__WEBPACK_IMPORTED_MODULE_5__.createElement(IconConvert, null),
+                            react__WEBPACK_IMPORTED_MODULE_5__.createElement("span", null, "Convert")))),
                 react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-table-wrap" },
                     react__WEBPACK_IMPORTED_MODULE_5__.createElement("table", { className: "jp-sas7bdat-table" },
                         react__WEBPACK_IMPORTED_MODULE_5__.createElement("thead", null,
-                            react__WEBPACK_IMPORTED_MODULE_5__.createElement("tr", null, visibleColumns.map(col => (react__WEBPACK_IMPORTED_MODULE_5__.createElement("th", { key: col.name }, col.name))))),
+                            react__WEBPACK_IMPORTED_MODULE_5__.createElement("tr", null, visibleColumns.map(col => (react__WEBPACK_IMPORTED_MODULE_5__.createElement("th", { key: col.name, title: col.label || col.name },
+                                react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-th-inner" },
+                                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("span", { className: "jp-sas7bdat-th-name" }, col.name),
+                                    col.label && (react__WEBPACK_IMPORTED_MODULE_5__.createElement("span", { className: "jp-sas7bdat-th-label" }, col.label)))))))),
                         react__WEBPACK_IMPORTED_MODULE_5__.createElement("tbody", null, rows.map((row, i) => (react__WEBPACK_IMPORTED_MODULE_5__.createElement("tr", { key: i }, visibleColumns.map(col => (react__WEBPACK_IMPORTED_MODULE_5__.createElement("td", { key: col.name }, formatCell(row[col.name])))))))))))));
     }
     toggleColumn(name) {
@@ -278,6 +373,7 @@ class Sas7bdatWidget extends _jupyterlab_apputils__WEBPACK_IMPORTED_MODULE_0__.R
         }
     }
 }
+// ── Widget factory ─────────────────────────────────────────────────
 class Sas7bdatWidgetFactory extends _jupyterlab_docregistry__WEBPACK_IMPORTED_MODULE_1__.ABCWidgetFactory {
     constructor(options, serverSettings) {
         super(options);
@@ -290,32 +386,9 @@ class Sas7bdatWidgetFactory extends _jupyterlab_docregistry__WEBPACK_IMPORTED_MO
         });
     }
 }
-function formatCell(value) {
-    if (value === null || value === undefined) {
-        return '';
-    }
-    if (typeof value === 'object') {
-        return JSON.stringify(value);
-    }
-    return String(value);
-}
-function isSupportedInput(path) {
-    const lower = path.toLowerCase();
-    return SUPPORTED_INPUTS.some(extension => lower.endsWith(extension));
-}
-function selectedPath(browserFactory) {
-    const widget = browserFactory.tracker.currentWidget;
-    if (!widget) {
-        return null;
-    }
-    const item = widget.selectedItems().next();
-    if (item.done) {
-        return null;
-    }
-    return item.value.path;
-}
-async function showConvertDialog(path, app) {
-    const settings = await (0,_request__WEBPACK_IMPORTED_MODULE_7__.requestAPI)('settings', app.serviceManager.serverSettings);
+// ── Convert dialog ─────────────────────────────────────────────────
+async function showConvertDialog(path, serverSettings) {
+    const settings = await (0,_request__WEBPACK_IMPORTED_MODULE_7__.requestAPI)('settings', serverSettings);
     const body = new _convert__WEBPACK_IMPORTED_MODULE_6__.ConvertDialogBody(path, settings.server_root);
     const result = await (0,_jupyterlab_apputils__WEBPACK_IMPORTED_MODULE_0__.showDialog)({
         title: `Convert ${path}`,
@@ -331,7 +404,7 @@ async function showConvertDialog(path, app) {
         return;
     }
     try {
-        const response = await (0,_request__WEBPACK_IMPORTED_MODULE_7__.requestAPI)('convert', app.serviceManager.serverSettings, {
+        const response = await (0,_request__WEBPACK_IMPORTED_MODULE_7__.requestAPI)('convert', serverSettings, {
             method: 'POST',
             body: JSON.stringify({
                 src: path,
@@ -349,6 +422,7 @@ async function showConvertDialog(path, app) {
         await (0,_jupyterlab_apputils__WEBPACK_IMPORTED_MODULE_0__.showErrorMessage)('Convert SAS7BDAT', reason);
     }
 }
+// ── Plugin ─────────────────────────────────────────────────────────
 const plugin = {
     id: 'jupyter-sas7bdat:plugin',
     description: 'Open, preview, and convert SAS7BDAT files.',
@@ -383,7 +457,7 @@ const plugin = {
             execute: async () => {
                 const path = selectedPath(browserFactory);
                 if (path !== null) {
-                    await showConvertDialog(path, app);
+                    await showConvertDialog(path, app.serviceManager.serverSettings);
                 }
             }
         });
@@ -453,4 +527,4 @@ async function requestAPI(endPoint, serverSettings, init = {}) {
 /***/ }
 
 }]);
-//# sourceMappingURL=lib_index_js.8245d25dd78e4e85cb70.js.map
+//# sourceMappingURL=lib_index_js.6b61ca3c3b4bce3738fd.js.map

@@ -15,6 +15,7 @@ import {
 } from '@jupyterlab/docregistry';
 import { IFileBrowserFactory } from '@jupyterlab/filebrowser';
 import { LabIcon } from '@jupyterlab/ui-components';
+import { ServerConnection } from '@jupyterlab/services';
 import { Widget } from '@lumino/widgets';
 import { Message } from '@lumino/messaging';
 
@@ -28,6 +29,46 @@ const FACTORY = 'SAS7BDAT Viewer';
 const FILE_TYPE = 'sas7bdat';
 const PAGE_SIZE = 100;
 const SUPPORTED_INPUTS = ['.sas7bdat', '.csv', '.tsv', '.json', '.parquet'];
+
+// ── Inline SVG icons ───────────────────────────────────────────────
+
+const IconColumns: React.FC = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+    <path d="M1 2.5A.5.5 0 0 1 1.5 2h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 2.5zm0 4A.5.5 0 0 1 1.5 6h13a.5.5 0 0 1 0 1h-13A.5.5 0 0 1 1 6.5zm0 4a.5.5 0 0 1 .5-.5h13a.5.5 0 0 1 0 1h-13a.5.5 0 0 1-.5-.5z" />
+  </svg>
+);
+
+const IconFilter: React.FC = () => (
+  <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+    <path d="M1.5 1.5A.5.5 0 0 1 2 1h12a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.128.334L10 8.692V13.5a.5.5 0 0 1-.342.474l-3 1A.5.5 0 0 1 6 14.5V8.692L1.628 3.834A.5.5 0 0 1 1.5 3.5v-2z" />
+  </svg>
+);
+
+const IconConvert: React.FC = () => (
+  <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+    <path d="M1 11.5a.5.5 0 0 0 .5.5h11.793l-3.147 3.146a.5.5 0 0 0 .708.708l4-4a.5.5 0 0 0 0-.708l-4-4a.5.5 0 0 0-.708.708L13.293 11H1.5a.5.5 0 0 0-.5.5zm14-7a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 1 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H14.5a.5.5 0 0 1 .5.5z" />
+  </svg>
+);
+
+const IconChevronLeft: React.FC = () => (
+  <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+    <path fillRule="evenodd" d="M11.354 1.646a.5.5 0 0 1 0 .708L5.707 8l5.647 5.646a.5.5 0 0 1-.708.708l-6-6a.5.5 0 0 1 0-.708l6-6a.5.5 0 0 1 .708 0z" />
+  </svg>
+);
+
+const IconChevronRight: React.FC = () => (
+  <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+    <path fillRule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" />
+  </svg>
+);
+
+const IconClose: React.FC = () => (
+  <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+    <path d="M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854z" />
+  </svg>
+);
+
+// ── Types ──────────────────────────────────────────────────────────
 
 interface IColumn {
   name: string;
@@ -52,6 +93,62 @@ interface IConvertResponse {
 interface ISettingsResponse {
   server_root: string;
 }
+
+// ── Helpers ────────────────────────────────────────────────────────
+
+function formatCell(value: unknown): string {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  if (typeof value === 'object') {
+    return JSON.stringify(value);
+  }
+  return String(value);
+}
+
+function typeBadgeClass(type: string): string {
+  const t = type.toLowerCase();
+  if (t.startsWith('float') || t.startsWith('int') || t.startsWith('uint')) {
+    return 'jp-sas7bdat-type-num';
+  }
+  if (t === 'object' || t.startsWith('str')) {
+    return 'jp-sas7bdat-type-str';
+  }
+  if (t.startsWith('datetime') || t.startsWith('date')) {
+    return 'jp-sas7bdat-type-date';
+  }
+  return 'jp-sas7bdat-type-other';
+}
+
+function typeBadgeLabel(type: string): string {
+  const t = type.toLowerCase();
+  if (t.startsWith('float')) return 'FLT';
+  if (t.startsWith('int') || t.startsWith('uint')) return 'INT';
+  if (t === 'object') return 'STR';
+  if (t.startsWith('datetime')) return 'DT';
+  if (t.startsWith('date')) return 'DATE';
+  if (t.startsWith('bool')) return 'BOOL';
+  return type.substring(0, 4).toUpperCase();
+}
+
+function isSupportedInput(path: string): boolean {
+  const lower = path.toLowerCase();
+  return SUPPORTED_INPUTS.some(ext => lower.endsWith(ext));
+}
+
+function selectedPath(browserFactory: IFileBrowserFactory): string | null {
+  const widget = browserFactory.tracker.currentWidget;
+  if (!widget) {
+    return null;
+  }
+  const item = widget.selectedItems().next();
+  if (item.done) {
+    return null;
+  }
+  return item.value.path;
+}
+
+// ── WHERE filter dialog widget ─────────────────────────────────────
 
 class WhereFilterWidget extends Widget implements Dialog.IBodyWidget<string> {
   constructor(initialValue: string) {
@@ -94,10 +191,12 @@ class WhereFilterWidget extends Widget implements Dialog.IBodyWidget<string> {
   }
 }
 
+// ── Dataset viewer widget ──────────────────────────────────────────
+
 class Sas7bdatWidget extends ReactWidget {
   constructor(
     private readonly context: DocumentRegistry.Context,
-    private readonly serverSettings: Parameters<typeof requestAPI>[1]
+    private readonly serverSettings: ServerConnection.ISettings
   ) {
     super();
     this.addClass('jp-sas7bdat-viewer');
@@ -111,16 +210,16 @@ class Sas7bdatWidget extends ReactWidget {
   render(): React.ReactElement {
     if (this.error) {
       return (
-        <div className="jp-sas7bdat-error">
-          Failed to load {this.context.path}: {this.error}
+        <div className="jp-sas7bdat-state jp-sas7bdat-error">
+          <span>Failed to load {this.context.path}: {this.error}</span>
         </div>
       );
     }
 
     if (!this.data) {
       return (
-        <div className="jp-sas7bdat-loading">
-          Loading {this.context.path}…
+        <div className="jp-sas7bdat-state jp-sas7bdat-loading">
+          <span>Loading {this.context.path}…</span>
         </div>
       );
     }
@@ -142,102 +241,143 @@ class Sas7bdatWidget extends ReactWidget {
           <aside className="jp-sas7bdat-sidebar">
             <div className="jp-sas7bdat-sidebar-header">
               <span className="jp-sas7bdat-sidebar-title">Variables</span>
+              <span className="jp-sas7bdat-sidebar-count">
+                {columns.length - this.hiddenColumns.size}/{columns.length}
+              </span>
               <button
-                className="jp-sas7bdat-close-btn"
+                className="jp-sas7bdat-icon-btn"
                 title="Close panel"
                 onClick={() => {
                   this.sidebarOpen = false;
                   this.update();
                 }}
               >
-                ✕
+                <IconClose />
               </button>
             </div>
             <div className="jp-sas7bdat-variable-list">
-              {columns.map(col => (
-                <label className="jp-sas7bdat-variable" key={col.name}>
-                  <input
-                    type="checkbox"
-                    checked={!this.hiddenColumns.has(col.name)}
-                    onChange={() => this.toggleColumn(col.name)}
-                  />
-                  <div className="jp-sas7bdat-variable-info">
-                    <div className="jp-sas7bdat-variable-name">{col.name}</div>
-                    <div className="jp-sas7bdat-variable-meta">
-                      {col.type}
-                      {col.format ? ` · ${col.format}` : ''}
-                    </div>
-                    {col.label ? (
-                      <div className="jp-sas7bdat-variable-label">
-                        {col.label}
+              {columns.map(col => {
+                const visible = !this.hiddenColumns.has(col.name);
+                return (
+                  <label
+                    className={
+                      'jp-sas7bdat-variable' +
+                      (visible ? '' : ' jp-sas7bdat-variable--hidden')
+                    }
+                    key={col.name}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={visible}
+                      onChange={() => this.toggleColumn(col.name)}
+                    />
+                    <div className="jp-sas7bdat-variable-info">
+                      <div className="jp-sas7bdat-variable-name-row">
+                        <span className="jp-sas7bdat-variable-name">{col.name}</span>
+                        <span className={`jp-sas7bdat-type-badge ${typeBadgeClass(col.type)}`}>
+                          {typeBadgeLabel(col.type)}
+                        </span>
                       </div>
-                    ) : null}
-                  </div>
-                </label>
-              ))}
+                      {col.label ? (
+                        <div className="jp-sas7bdat-variable-label">{col.label}</div>
+                      ) : null}
+                      {col.format ? (
+                        <div className="jp-sas7bdat-variable-format">{col.format}</div>
+                      ) : null}
+                    </div>
+                  </label>
+                );
+              })}
             </div>
           </aside>
         )}
         <main className="jp-sas7bdat-main">
           <div className="jp-sas7bdat-toolbar">
-            <button
-              className={
-                'jp-sas7bdat-toolbar-btn' +
-                (this.sidebarOpen ? ' jp-sas7bdat-toolbar-btn--active' : '')
-              }
-              title={this.sidebarOpen ? 'Hide variables panel' : 'Show variables panel'}
-              onClick={() => {
-                this.sidebarOpen = !this.sidebarOpen;
-                this.update();
-              }}
-            >
-              ☰ Variables
-            </button>
-            <button
-              className={
-                'jp-sas7bdat-toolbar-btn' +
-                (this.activeWhere ? ' jp-sas7bdat-toolbar-btn--filter-active' : '')
-              }
-              title={
-                this.activeWhere
-                  ? `Active filter: ${this.activeWhere}`
-                  : 'Filter rows'
-              }
-              onClick={() => void this.showWhereDialog()}
-            >
-              ⊘ Filter{this.activeWhere ? ' ●' : ''}
-            </button>
-            <span className="jp-sas7bdat-toolbar-sep" />
-            <span className="jp-sas7bdat-row-info">
-              {this.loading
-                ? 'Loading…'
-                : total_rows === 0
-                ? 'No rows'
-                : `Rows ${offset + 1}–${end} of ${total_rows}`}
-            </span>
-            <button
-              className="jp-sas7bdat-toolbar-btn"
-              disabled={!hasPrevious || this.loading}
-              onClick={() =>
-                void this.loadPage(Math.max(0, offset - PAGE_SIZE))
-              }
-            >
-              ◂ Prev
-            </button>
-            <button
-              className="jp-sas7bdat-toolbar-btn"
-              disabled={!hasNext || this.loading}
-              onClick={() => void this.loadPage(offset + PAGE_SIZE)}
-            >
-              Next ▸
-            </button>
+            <div className="jp-sas7bdat-toolbar-group">
+              <button
+                className={
+                  'jp-sas7bdat-toolbar-btn' +
+                  (this.sidebarOpen ? ' jp-sas7bdat-toolbar-btn--active' : '')
+                }
+                title={this.sidebarOpen ? 'Hide variables panel' : 'Show variables panel'}
+                onClick={() => {
+                  this.sidebarOpen = !this.sidebarOpen;
+                  this.update();
+                }}
+              >
+                <IconColumns />
+                <span>Variables</span>
+              </button>
+              <button
+                className={
+                  'jp-sas7bdat-toolbar-btn' +
+                  (this.activeWhere ? ' jp-sas7bdat-toolbar-btn--filter-active' : '')
+                }
+                title={
+                  this.activeWhere
+                    ? `Active filter: ${this.activeWhere}`
+                    : 'Filter rows'
+                }
+                onClick={() => void this.showWhereDialog()}
+              >
+                <IconFilter />
+                <span>Filter{this.activeWhere ? ' ●' : ''}</span>
+              </button>
+            </div>
+
+            <div className="jp-sas7bdat-toolbar-group jp-sas7bdat-toolbar-group--right">
+              <span className="jp-sas7bdat-row-info">
+                {this.loading
+                  ? 'Loading…'
+                  : total_rows === 0
+                  ? 'No rows'
+                  : `${offset + 1}–${end} of ${total_rows.toLocaleString()}`}
+              </span>
+              <div className="jp-sas7bdat-toolbar-pagination">
+                <button
+                  className="jp-sas7bdat-icon-btn jp-sas7bdat-icon-btn--nav"
+                  disabled={!hasPrevious || this.loading}
+                  title="Previous page"
+                  onClick={() =>
+                    void this.loadPage(Math.max(0, offset - PAGE_SIZE))
+                  }
+                >
+                  <IconChevronLeft />
+                </button>
+                <button
+                  className="jp-sas7bdat-icon-btn jp-sas7bdat-icon-btn--nav"
+                  disabled={!hasNext || this.loading}
+                  title="Next page"
+                  onClick={() => void this.loadPage(offset + PAGE_SIZE)}
+                >
+                  <IconChevronRight />
+                </button>
+              </div>
+              <div className="jp-sas7bdat-toolbar-divider" />
+              <button
+                className="jp-sas7bdat-toolbar-btn jp-sas7bdat-toolbar-btn--convert"
+                title="Convert this dataset to another format"
+                onClick={() => void showConvertDialog(this.context.path, this.serverSettings)}
+              >
+                <IconConvert />
+                <span>Convert</span>
+              </button>
+            </div>
           </div>
+
           <div className="jp-sas7bdat-table-wrap">
             <table className="jp-sas7bdat-table">
               <thead>
                 <tr>
                   {visibleColumns.map(col => (
-                    <th key={col.name}>{col.name}</th>
+                    <th key={col.name} title={col.label || col.name}>
+                      <div className="jp-sas7bdat-th-inner">
+                        <span className="jp-sas7bdat-th-name">{col.name}</span>
+                        {col.label && (
+                          <span className="jp-sas7bdat-th-label">{col.label}</span>
+                        )}
+                      </div>
+                    </th>
                   ))}
                 </tr>
               </thead>
@@ -313,12 +453,14 @@ class Sas7bdatWidget extends ReactWidget {
   private activeWhere = '';
 }
 
+// ── Widget factory ─────────────────────────────────────────────────
+
 class Sas7bdatWidgetFactory extends ABCWidgetFactory<
   DocumentWidget<Sas7bdatWidget>
 > {
   constructor(
     options: DocumentRegistry.IWidgetFactoryOptions,
-    private readonly serverSettings: Parameters<typeof requestAPI>[1]
+    private readonly serverSettings: ServerConnection.ISettings
   ) {
     super(options);
   }
@@ -333,40 +475,15 @@ class Sas7bdatWidgetFactory extends ABCWidgetFactory<
   }
 }
 
-function formatCell(value: unknown): string {
-  if (value === null || value === undefined) {
-    return '';
-  }
-  if (typeof value === 'object') {
-    return JSON.stringify(value);
-  }
-  return String(value);
-}
-
-function isSupportedInput(path: string): boolean {
-  const lower = path.toLowerCase();
-  return SUPPORTED_INPUTS.some(extension => lower.endsWith(extension));
-}
-
-function selectedPath(browserFactory: IFileBrowserFactory): string | null {
-  const widget = browserFactory.tracker.currentWidget;
-  if (!widget) {
-    return null;
-  }
-  const item = widget.selectedItems().next();
-  if (item.done) {
-    return null;
-  }
-  return item.value.path;
-}
+// ── Convert dialog ─────────────────────────────────────────────────
 
 async function showConvertDialog(
   path: string,
-  app: JupyterFrontEnd
+  serverSettings: ServerConnection.ISettings
 ): Promise<void> {
   const settings = await requestAPI<ISettingsResponse>(
     'settings',
-    app.serviceManager.serverSettings
+    serverSettings
   );
   const body: Dialog.IBodyWidget<IConvertValue> = new ConvertDialogBody(
     path,
@@ -391,7 +508,7 @@ async function showConvertDialog(
   try {
     const response = await requestAPI<IConvertResponse>(
       'convert',
-      app.serviceManager.serverSettings,
+      serverSettings,
       {
         method: 'POST',
         body: JSON.stringify({
@@ -410,6 +527,8 @@ async function showConvertDialog(
     await showErrorMessage('Convert SAS7BDAT', reason as Error);
   }
 }
+
+// ── Plugin ─────────────────────────────────────────────────────────
 
 const plugin: JupyterFrontEndPlugin<void> = {
   id: 'jupyter-sas7bdat:plugin',
@@ -452,7 +571,7 @@ const plugin: JupyterFrontEndPlugin<void> = {
       execute: async () => {
         const path = selectedPath(browserFactory);
         if (path !== null) {
-          await showConvertDialog(path, app);
+          await showConvertDialog(path, app.serviceManager.serverSettings);
         }
       }
     });
