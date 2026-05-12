@@ -7,7 +7,7 @@ node_modules/
 *.egg-info/
 .ipynb_checkpoints
 *.tsbuildinfo
-jupyter_sas7bdat/labextension
+# jupyter_sas7bdat/labextension  # committed so pip install works without a separate build step
 # Version file is handled by hatchling
 jupyter_sas7bdat/_version.py
 
