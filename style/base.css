@@ -423,26 +423,31 @@
   width: 100%;
 }
 
+.jp-sas7bdat-where-hint-row {
+  align-items: baseline;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
 .jp-sas7bdat-where-hint {
   color: var(--jp-ui-font-color2);
   font-size: var(--jp-ui-font-size0);
-  margin: 0;
 }
 
 .jp-sas7bdat-where-clear-btn {
-  align-self: flex-start;
   background: none;
-  border: 1px solid var(--jp-border-color1);
-  border-radius: 3px;
-  color: var(--jp-ui-font-color2);
+  border: none;
+  color: var(--jp-brand-color1, #1976d2);
   cursor: pointer;
+  flex-shrink: 0;
   font-size: var(--jp-ui-font-size0);
-  padding: 2px 8px;
+  padding: 0;
+  text-decoration: underline;
 }
 
 .jp-sas7bdat-where-clear-btn:hover {
-  background: var(--jp-layout-color2);
-  color: var(--jp-ui-font-color1);
+  color: var(--jp-brand-color0, #1565c0);
 }
 
 .jp-sas7bdat-icon-btn--clear-filter {

@@ -174,16 +174,19 @@ class WhereFilterWidget extends Widget implements Dialog.IBodyWidget<string> {
     textarea.rows = 3;
     node.appendChild(textarea);
 
-    const hint = document.createElement('p');
+    const hintRow = document.createElement('div');
+    hintRow.className = 'jp-sas7bdat-where-hint-row';
+
+    const hint = document.createElement('span');
     hint.className = 'jp-sas7bdat-where-hint';
     hint.textContent =
       'Column names are case-insensitive. Names with spaces need backticks: `my col` > 0.';
-    node.appendChild(hint);
+    hintRow.appendChild(hint);
 
     const clearBtn = document.createElement('button');
     clearBtn.type = 'button';
     clearBtn.className = 'jp-sas7bdat-where-clear-btn';
-    clearBtn.textContent = 'Clear filter';
+    clearBtn.textContent = 'Clear';
     clearBtn.addEventListener('click', () => {
       const ta = node.querySelector<HTMLTextAreaElement>('textarea');
       if (ta) {
@@ -191,7 +194,8 @@ class WhereFilterWidget extends Widget implements Dialog.IBodyWidget<string> {
         ta.focus();
       }
     });
-    node.appendChild(clearBtn);
+    hintRow.appendChild(clearBtn);
+    node.appendChild(hintRow);
 
     super({ node });
   }

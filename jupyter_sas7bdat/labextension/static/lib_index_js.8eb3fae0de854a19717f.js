@@ -204,15 +204,17 @@ class WhereFilterWidget extends _lumino_widgets__WEBPACK_IMPORTED_MODULE_4__.Wid
         textarea.placeholder = "age > 30 AND name = 'Smith'";
         textarea.rows = 3;
         node.appendChild(textarea);
-        const hint = document.createElement('p');
+        const hintRow = document.createElement('div');
+        hintRow.className = 'jp-sas7bdat-where-hint-row';
+        const hint = document.createElement('span');
         hint.className = 'jp-sas7bdat-where-hint';
         hint.textContent =
             'Column names are case-insensitive. Names with spaces need backticks: `my col` > 0.';
-        node.appendChild(hint);
+        hintRow.appendChild(hint);
         const clearBtn = document.createElement('button');
         clearBtn.type = 'button';
         clearBtn.className = 'jp-sas7bdat-where-clear-btn';
-        clearBtn.textContent = 'Clear filter';
+        clearBtn.textContent = 'Clear';
         clearBtn.addEventListener('click', () => {
             const ta = node.querySelector('textarea');
             if (ta) {
@@ -220,7 +222,8 @@ class WhereFilterWidget extends _lumino_widgets__WEBPACK_IMPORTED_MODULE_4__.Wid
                 ta.focus();
             }
         });
-        node.appendChild(clearBtn);
+        hintRow.appendChild(clearBtn);
+        node.appendChild(hintRow);
         super({ node });
     }
     getValue() {
@@ -572,4 +575,4 @@ async function requestAPI(endPoint, serverSettings, init = {}) {
 /***/ }
 
 }]);
-//# sourceMappingURL=lib_index_js.20c969a16bc3b84ac779.js.map
+//# sourceMappingURL=lib_index_js.8eb3fae0de854a19717f.js.map
