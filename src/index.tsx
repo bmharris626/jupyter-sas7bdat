@@ -177,8 +177,21 @@ class WhereFilterWidget extends Widget implements Dialog.IBodyWidget<string> {
     const hint = document.createElement('p');
     hint.className = 'jp-sas7bdat-where-hint';
     hint.textContent =
-      'Column names are case-insensitive. Names with spaces need backticks: `my col` > 0. Leave blank to clear the filter.';
+      'Column names are case-insensitive. Names with spaces need backticks: `my col` > 0.';
     node.appendChild(hint);
+
+    const clearBtn = document.createElement('button');
+    clearBtn.type = 'button';
+    clearBtn.className = 'jp-sas7bdat-where-clear-btn';
+    clearBtn.textContent = 'Clear filter';
+    clearBtn.addEventListener('click', () => {
+      const ta = node.querySelector<HTMLTextAreaElement>('textarea');
+      if (ta) {
+        ta.value = '';
+        ta.focus();
+      }
+    });
+    node.appendChild(clearBtn);
 
     super({ node });
   }
@@ -194,6 +207,14 @@ class WhereFilterWidget extends Widget implements Dialog.IBodyWidget<string> {
     if (ta) {
       ta.focus();
       ta.selectionStart = ta.value.length;
+      ta.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          const dialog = this.node.closest('.jp-Dialog');
+          const okBtn = dialog?.querySelector<HTMLButtonElement>('.jp-mod-accept');
+          okBtn?.click();
+        }
+      });
     }
   }
 }
@@ -330,6 +351,18 @@ class Sas7bdatWidget extends ReactWidget {
                 <IconFilter />
                 <span>Filter{this.activeWhere ? ' ●' : ''}</span>
               </button>
+              {this.activeWhere && (
+                <button
+                  className="jp-sas7bdat-icon-btn jp-sas7bdat-icon-btn--clear-filter"
+                  title="Clear filter"
+                  onClick={() => {
+                    this.activeWhere = '';
+                    void this.loadPage(0);
+                  }}
+                >
+                  <IconClose />
+                </button>
+              )}
             </div>
 
             <div className="jp-sas7bdat-toolbar-group jp-sas7bdat-toolbar-group--right">

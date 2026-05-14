@@ -133,49 +133,51 @@ class SettingsHandler(APIHandler):
 def _apply_where(df: pd.DataFrame, where: str) -> pd.DataFrame:
     """Filter df using a SQL-like WHERE expression via pandas .query().
 
-    Normalises AND/OR/NOT (case-insensitive) to lowercase so pandas accepts
-    them, rewrites bare = to == while leaving != alone, and resolves column
-    name identifiers case-insensitively against the actual DataFrame columns.
+    Column name matching is case-insensitive: 'model', 'Model', and 'MODEL'
+    all resolve to the same column. AND/OR/NOT are case-insensitive. Bare =
+    is rewritten to ==. Names with spaces need backtick-quoting: `my col`.
+
+    Implementation: queries a lowercase-column copy of df, then returns the
+    original df filtered by the matching row index so displayed column names
+    are always the original un-transformed names from the file.
     """
     import re
+
     expr = re.sub(r'\bAND\b', 'and', where, flags=re.IGNORECASE)
     expr = re.sub(r'\bOR\b', 'or', expr, flags=re.IGNORECASE)
     expr = re.sub(r'\bNOT\b', 'not', expr, flags=re.IGNORECASE)
-    # Replace = not preceded/followed by !, <, >, = with ==
     expr = re.sub(r'(?<![!<>=])=(?!=)', '==', expr)
 
-    # Case-insensitive column name resolution: map any bare identifier that
-    # matches a column name (ignoring case) to its actual name.  Skip string
-    # literals (single/double quoted) and backtick-quoted names to avoid
-    # corrupting user-supplied values or already-correct references.
-    _QUERY_KEYWORDS = frozenset(
-        ('and', 'or', 'not', 'in', 'list', 'True', 'False', 'None')
-    )
-    col_map = {c.lower(): c for c in df.columns}
+    col_lower = {c.lower() for c in df.columns}
 
-    def _remap_token(m: re.Match) -> str:
+    # Lowercase backtick-quoted column references: `My Col` → `my col`
+    expr = re.sub(r'`([^`]*)`', lambda m: '`' + m.group(1).lower() + '`', expr)
+
+    _QUERY_KEYWORDS = frozenset(
+        ['and', 'or', 'not', 'in', 'list', 'True', 'False', 'None']
+    )
+
+    def _lowercase_col(m: re.Match) -> str:
         token = m.group(0)
         if token in _QUERY_KEYWORDS:
             return token
-        return col_map.get(token.lower(), token)
+        lower = token.lower()
+        return lower if lower in col_lower else token
 
-    # Split on quoted segments (backtick, double-quote, single-quote) so we
-    # only rewrite identifiers in the non-quoted parts.
-    parts = re.split(
-        r'(`[^`]*`|"(?:[^"\\]|\\.)*"|\'(?:[^\'\\]|\\.)*\')', expr
-    )
+    # Protect string literals from token rewriting; backtick names already
+    # lowercased above so only split on single/double-quoted string values.
+    parts = re.split(r'("(?:[^"\\]|\\.)*"|\'(?:[^\'\\]|\\.)*\')', expr)
     remapped = []
     for i, part in enumerate(parts):
         if i % 2 == 1:
             remapped.append(part)
         else:
-            remapped.append(
-                re.sub(r'\b[A-Za-z_][A-Za-z0-9_]*\b', _remap_token, part)
-            )
+            remapped.append(re.sub(r'\b[A-Za-z_][A-Za-z0-9_]*\b', _lowercase_col, part))
     expr = ''.join(remapped)
 
+    df_norm = df.set_axis([c.lower() for c in df.columns], axis=1)
     try:
-        return df.query(expr)
+        return df.loc[df_norm.query(expr).index]
     except Exception as exc:
         raise tornado.web.HTTPError(400, f"Invalid filter expression: {exc}") from exc
 

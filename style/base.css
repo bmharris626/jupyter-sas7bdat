@@ -349,7 +349,6 @@
   letter-spacing: 0.04em;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -428,6 +427,31 @@
   color: var(--jp-ui-font-color2);
   font-size: var(--jp-ui-font-size0);
   margin: 0;
+}
+
+.jp-sas7bdat-where-clear-btn {
+  align-self: flex-start;
+  background: none;
+  border: 1px solid var(--jp-border-color1);
+  border-radius: 3px;
+  color: var(--jp-ui-font-color2);
+  cursor: pointer;
+  font-size: var(--jp-ui-font-size0);
+  padding: 2px 8px;
+}
+
+.jp-sas7bdat-where-clear-btn:hover {
+  background: var(--jp-layout-color2);
+  color: var(--jp-ui-font-color1);
+}
+
+.jp-sas7bdat-icon-btn--clear-filter {
+  color: var(--jp-ui-font-color2);
+  margin-left: -4px;
+}
+
+.jp-sas7bdat-icon-btn--clear-filter:hover {
+  color: var(--jp-error-color1, #d32f2f);
 }
 
 .jp-sas7bdat-where-error {

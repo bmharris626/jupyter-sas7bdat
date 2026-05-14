@@ -207,8 +207,20 @@ class WhereFilterWidget extends _lumino_widgets__WEBPACK_IMPORTED_MODULE_4__.Wid
         const hint = document.createElement('p');
         hint.className = 'jp-sas7bdat-where-hint';
         hint.textContent =
-            'Column names are case-insensitive. Names with spaces need backticks: `my col` > 0. Leave blank to clear the filter.';
+            'Column names are case-insensitive. Names with spaces need backticks: `my col` > 0.';
         node.appendChild(hint);
+        const clearBtn = document.createElement('button');
+        clearBtn.type = 'button';
+        clearBtn.className = 'jp-sas7bdat-where-clear-btn';
+        clearBtn.textContent = 'Clear filter';
+        clearBtn.addEventListener('click', () => {
+            const ta = node.querySelector('textarea');
+            if (ta) {
+                ta.value = '';
+                ta.focus();
+            }
+        });
+        node.appendChild(clearBtn);
         super({ node });
     }
     getValue() {
@@ -222,6 +234,14 @@ class WhereFilterWidget extends _lumino_widgets__WEBPACK_IMPORTED_MODULE_4__.Wid
         if (ta) {
             ta.focus();
             ta.selectionStart = ta.value.length;
+            ta.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    const dialog = this.node.closest('.jp-Dialog');
+                    const okBtn = dialog === null || dialog === void 0 ? void 0 : dialog.querySelector('.jp-mod-accept');
+                    okBtn === null || okBtn === void 0 ? void 0 : okBtn.click();
+                }
+            });
         }
     }
 }
@@ -307,7 +327,12 @@ class Sas7bdatWidget extends _jupyterlab_apputils__WEBPACK_IMPORTED_MODULE_0__.R
                             react__WEBPACK_IMPORTED_MODULE_5__.createElement(IconFilter, null),
                             react__WEBPACK_IMPORTED_MODULE_5__.createElement("span", null,
                                 "Filter",
-                                this.activeWhere ? ' ●' : ''))),
+                                this.activeWhere ? ' ●' : '')),
+                        this.activeWhere && (react__WEBPACK_IMPORTED_MODULE_5__.createElement("button", { className: "jp-sas7bdat-icon-btn jp-sas7bdat-icon-btn--clear-filter", title: "Clear filter", onClick: () => {
+                                this.activeWhere = '';
+                                void this.loadPage(0);
+                            } },
+                            react__WEBPACK_IMPORTED_MODULE_5__.createElement(IconClose, null)))),
                     react__WEBPACK_IMPORTED_MODULE_5__.createElement("div", { className: "jp-sas7bdat-toolbar-group jp-sas7bdat-toolbar-group--right" },
                         react__WEBPACK_IMPORTED_MODULE_5__.createElement("span", { className: "jp-sas7bdat-row-info" }, this.loading
                             ? 'Loading…'
@@ -547,4 +572,4 @@ async function requestAPI(endPoint, serverSettings, init = {}) {
 /***/ }
 
 }]);
-//# sourceMappingURL=lib_index_js.915d53bf10bcd596c7d0.js.map
+//# sourceMappingURL=lib_index_js.20c969a16bc3b84ac779.js.map

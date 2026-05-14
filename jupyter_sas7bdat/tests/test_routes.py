@@ -6,6 +6,86 @@ import pyarrow.parquet as pq
 import pyreadstat
 import pytest
 
+from jupyter_sas7bdat.routes import _apply_where
+
+
+# ---------------------------------------------------------------------------
+# _apply_where unit tests
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def mixed_df():
+    return pd.DataFrame({
+        "Make": ["Honda", "Toyota", "Ford"],
+        "Model": ["Civic", "Camry", "F-150"],
+        "Year": [2020, 2019, 2021],
+        "Price": [22000.0, 25000.0, 35000.0],
+    })
+
+
+def test_where_exact_case(mixed_df):
+    result = _apply_where(mixed_df, "Year > 2019")
+    assert list(result["Make"]) == ["Honda", "Ford"]
+
+
+def test_where_column_lowercase(mixed_df):
+    result = _apply_where(mixed_df, "year > 2019")
+    assert list(result["Make"]) == ["Honda", "Ford"]
+
+
+def test_where_column_uppercase(mixed_df):
+    result = _apply_where(mixed_df, "YEAR > 2019")
+    assert list(result["Make"]) == ["Honda", "Ford"]
+
+
+def test_where_column_mixed_case(mixed_df):
+    result = _apply_where(mixed_df, "yEaR > 2019")
+    assert list(result["Make"]) == ["Honda", "Ford"]
+
+
+def test_where_string_equality(mixed_df):
+    result = _apply_where(mixed_df, "MAKE == 'Honda'")
+    assert len(result) == 1
+    assert result.iloc[0]["Model"] == "Civic"
+
+
+def test_where_bare_equals_rewritten(mixed_df):
+    result = _apply_where(mixed_df, "year = 2020")
+    assert len(result) == 1
+
+
+def test_where_and_operator_uppercase(mixed_df):
+    result = _apply_where(mixed_df, "year > 2018 AND price < 30000")
+    assert list(result["Make"]) == ["Honda", "Toyota"]
+
+
+def test_where_or_operator_mixed(mixed_df):
+    result = _apply_where(mixed_df, "year == 2020 Or year == 2021")
+    assert len(result) == 2
+
+
+def test_where_not_operator(mixed_df):
+    result = _apply_where(mixed_df, "NOT year == 2019")
+    assert len(result) == 2
+
+
+def test_where_preserves_original_column_names(mixed_df):
+    result = _apply_where(mixed_df, "MAKE == 'Honda'")
+    assert list(result.columns) == ["Make", "Model", "Year", "Price"]
+
+
+def test_where_backtick_column_lowercased():
+    df = pd.DataFrame({"My Col": [1, 2, 3], "Other": [4, 5, 6]})
+    result = _apply_where(df, "`MY COL` > 1")
+    assert list(result["My Col"]) == [2, 3]
+
+
+def test_where_invalid_expression_raises_400(mixed_df):
+    import tornado.web
+    with pytest.raises(tornado.web.HTTPError) as exc_info:
+        _apply_where(mixed_df, "definitely_not_a_column > 0")
+    assert exc_info.value.status_code == 400
+
 
 # ---------------------------------------------------------------------------
 # Fixtures
