@@ -31,11 +31,20 @@ def _resolve_path(root_dir: str, user_path: str) -> Path:
     return normalized
 
 
+def _strip_string_columns(df: pd.DataFrame) -> pd.DataFrame:
+    """Strip leading/trailing whitespace from SAS fixed-width character columns."""
+    for col in df.columns:
+        if pd.api.types.is_string_dtype(df[col]):
+            df[col] = df[col].str.strip()
+    return df
+
+
 def _read_sas7bdat_raw(path: Path):
     try:
-        return pyreadstat.read_sas7bdat(str(path))
+        df, meta = pyreadstat.read_sas7bdat(str(path))
     except UnicodeDecodeError:
-        return pyreadstat.read_sas7bdat(str(path), encoding="latin-1")
+        df, meta = pyreadstat.read_sas7bdat(str(path), encoding="latin-1")
+    return _strip_string_columns(df), meta
 
 
 def _read_sas7bdat(path: Path) -> tuple[pd.DataFrame, dict[str, Any]]:
