@@ -151,9 +151,16 @@ function selectedPath(browserFactory: IFileBrowserFactory): string | null {
 // ── WHERE filter dialog widget ─────────────────────────────────────
 
 class WhereFilterWidget extends Widget implements Dialog.IBodyWidget<string> {
-  constructor(initialValue: string) {
+  constructor(initialValue: string, errorMsg?: string) {
     const node = document.createElement('div');
     node.className = 'jp-sas7bdat-where-dialog';
+
+    if (errorMsg) {
+      const errDiv = document.createElement('p');
+      errDiv.className = 'jp-sas7bdat-where-error';
+      errDiv.textContent = errorMsg;
+      node.appendChild(errDiv);
+    }
 
     const label = document.createElement('p');
     label.className = 'jp-sas7bdat-where-label';
@@ -170,7 +177,7 @@ class WhereFilterWidget extends Widget implements Dialog.IBodyWidget<string> {
     const hint = document.createElement('p');
     hint.className = 'jp-sas7bdat-where-hint';
     hint.textContent =
-      'Column names with spaces need backticks: `my col` > 0. Leave blank to clear the filter.';
+      'Column names are case-insensitive. Names with spaces need backticks: `my col` > 0. Leave blank to clear the filter.';
     node.appendChild(hint);
 
     super({ node });
@@ -406,18 +413,35 @@ class Sas7bdatWidget extends ReactWidget {
     this.update();
   }
 
-  private async showWhereDialog(): Promise<void> {
-    const body = new WhereFilterWidget(this.activeWhere);
+  private async showWhereDialog(
+    prevWhere?: string,
+    errorMsg?: string
+  ): Promise<void> {
+    const body = new WhereFilterWidget(this.activeWhere, errorMsg);
     const result = await showDialog<string>({
       title: 'Filter Rows',
       body,
       buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Apply' })]
     });
     if (!result.button.accept) {
+      // Cancelled while retrying a bad filter — restore the last good filter
+      if (errorMsg !== undefined && prevWhere !== undefined) {
+        this.activeWhere = prevWhere;
+        this.error = null;
+        this.update();
+      }
       return;
     }
+    const savedWhere = prevWhere ?? this.activeWhere;
     this.activeWhere = result.value ?? '';
     await this.loadPage(0);
+    if (this.error && this.activeWhere) {
+      // Filter was rejected by the server — re-open dialog with the error shown
+      const filterError = this.error;
+      this.error = null;
+      this.update();
+      await this.showWhereDialog(savedWhere, filterError);
+    }
   }
 
   private async loadPage(offset: number): Promise<void> {

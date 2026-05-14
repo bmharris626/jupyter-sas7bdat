@@ -185,9 +185,15 @@ function selectedPath(browserFactory) {
 }
 // ── WHERE filter dialog widget ─────────────────────────────────────
 class WhereFilterWidget extends _lumino_widgets__WEBPACK_IMPORTED_MODULE_4__.Widget {
-    constructor(initialValue) {
+    constructor(initialValue, errorMsg) {
         const node = document.createElement('div');
         node.className = 'jp-sas7bdat-where-dialog';
+        if (errorMsg) {
+            const errDiv = document.createElement('p');
+            errDiv.className = 'jp-sas7bdat-where-error';
+            errDiv.textContent = errorMsg;
+            node.appendChild(errDiv);
+        }
         const label = document.createElement('p');
         label.className = 'jp-sas7bdat-where-label';
         label.textContent = 'Filter rows — SQL-like syntax (AND, OR, NOT, =, !=, <, >, <=, >=):';
@@ -201,7 +207,7 @@ class WhereFilterWidget extends _lumino_widgets__WEBPACK_IMPORTED_MODULE_4__.Wid
         const hint = document.createElement('p');
         hint.className = 'jp-sas7bdat-where-hint';
         hint.textContent =
-            'Column names with spaces need backticks: `my col` > 0. Leave blank to clear the filter.';
+            'Column names are case-insensitive. Names with spaces need backticks: `my col` > 0. Leave blank to clear the filter.';
         node.appendChild(hint);
         super({ node });
     }
@@ -335,19 +341,33 @@ class Sas7bdatWidget extends _jupyterlab_apputils__WEBPACK_IMPORTED_MODULE_0__.R
         }
         this.update();
     }
-    async showWhereDialog() {
+    async showWhereDialog(prevWhere, errorMsg) {
         var _a;
-        const body = new WhereFilterWidget(this.activeWhere);
+        const body = new WhereFilterWidget(this.activeWhere, errorMsg);
         const result = await (0,_jupyterlab_apputils__WEBPACK_IMPORTED_MODULE_0__.showDialog)({
             title: 'Filter Rows',
             body,
             buttons: [_jupyterlab_apputils__WEBPACK_IMPORTED_MODULE_0__.Dialog.cancelButton(), _jupyterlab_apputils__WEBPACK_IMPORTED_MODULE_0__.Dialog.okButton({ label: 'Apply' })]
         });
         if (!result.button.accept) {
+            // Cancelled while retrying a bad filter — restore the last good filter
+            if (errorMsg !== undefined && prevWhere !== undefined) {
+                this.activeWhere = prevWhere;
+                this.error = null;
+                this.update();
+            }
             return;
         }
+        const savedWhere = prevWhere !== null && prevWhere !== void 0 ? prevWhere : this.activeWhere;
         this.activeWhere = (_a = result.value) !== null && _a !== void 0 ? _a : '';
         await this.loadPage(0);
+        if (this.error && this.activeWhere) {
+            // Filter was rejected by the server — re-open dialog with the error shown
+            const filterError = this.error;
+            this.error = null;
+            this.update();
+            await this.showWhereDialog(savedWhere, filterError);
+        }
     }
     async loadPage(offset) {
         this.loading = true;
@@ -527,4 +547,4 @@ async function requestAPI(endPoint, serverSettings, init = {}) {
 /***/ }
 
 }]);
-//# sourceMappingURL=lib_index_js.6b61ca3c3b4bce3738fd.js.map
+//# sourceMappingURL=lib_index_js.915d53bf10bcd596c7d0.js.map

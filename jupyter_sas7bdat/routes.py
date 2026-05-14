@@ -134,7 +134,8 @@ def _apply_where(df: pd.DataFrame, where: str) -> pd.DataFrame:
     """Filter df using a SQL-like WHERE expression via pandas .query().
 
     Normalises AND/OR/NOT (case-insensitive) to lowercase so pandas accepts
-    them, and rewrites bare = to == while leaving != alone.
+    them, rewrites bare = to == while leaving != alone, and resolves column
+    name identifiers case-insensitively against the actual DataFrame columns.
     """
     import re
     expr = re.sub(r'\bAND\b', 'and', where, flags=re.IGNORECASE)
@@ -142,6 +143,37 @@ def _apply_where(df: pd.DataFrame, where: str) -> pd.DataFrame:
     expr = re.sub(r'\bNOT\b', 'not', expr, flags=re.IGNORECASE)
     # Replace = not preceded/followed by !, <, >, = with ==
     expr = re.sub(r'(?<![!<>=])=(?!=)', '==', expr)
+
+    # Case-insensitive column name resolution: map any bare identifier that
+    # matches a column name (ignoring case) to its actual name.  Skip string
+    # literals (single/double quoted) and backtick-quoted names to avoid
+    # corrupting user-supplied values or already-correct references.
+    _QUERY_KEYWORDS = frozenset(
+        ('and', 'or', 'not', 'in', 'list', 'True', 'False', 'None')
+    )
+    col_map = {c.lower(): c for c in df.columns}
+
+    def _remap_token(m: re.Match) -> str:
+        token = m.group(0)
+        if token in _QUERY_KEYWORDS:
+            return token
+        return col_map.get(token.lower(), token)
+
+    # Split on quoted segments (backtick, double-quote, single-quote) so we
+    # only rewrite identifiers in the non-quoted parts.
+    parts = re.split(
+        r'(`[^`]*`|"(?:[^"\\]|\\.)*"|\'(?:[^\'\\]|\\.)*\')', expr
+    )
+    remapped = []
+    for i, part in enumerate(parts):
+        if i % 2 == 1:
+            remapped.append(part)
+        else:
+            remapped.append(
+                re.sub(r'\b[A-Za-z_][A-Za-z0-9_]*\b', _remap_token, part)
+            )
+    expr = ''.join(remapped)
+
     try:
         return df.query(expr)
     except Exception as exc:

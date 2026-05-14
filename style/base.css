@@ -430,6 +430,15 @@
   margin: 0;
 }
 
+.jp-sas7bdat-where-error {
+  background: var(--jp-error-color3, #fde8e8);
+  border-left: 3px solid var(--jp-error-color1, #d32f2f);
+  color: var(--jp-error-color1, #d32f2f);
+  font-size: var(--jp-ui-font-size1);
+  margin: 0;
+  padding: 6px 10px;
+}
+
 /* ── Convert dialog ───────────────────────────────────────────────── */
 
 .jp-sas7bdat-convert-dialog label {
