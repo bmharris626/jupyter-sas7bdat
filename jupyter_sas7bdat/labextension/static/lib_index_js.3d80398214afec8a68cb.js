@@ -209,7 +209,7 @@ class WhereFilterWidget extends _lumino_widgets__WEBPACK_IMPORTED_MODULE_4__.Wid
         const hint = document.createElement('span');
         hint.className = 'jp-sas7bdat-where-hint';
         hint.textContent =
-            'Column names are case-insensitive. Names with spaces need backticks: `my col` > 0.';
+            'Supports =, !=, <, >, AND, OR, NOT, and LIKE with % wildcards (e.g. Name LIKE \'%Smith%\'). Column names are case-insensitive; names with spaces use backticks: `my col`.';
         hintRow.appendChild(hint);
         const clearBtn = document.createElement('button');
         clearBtn.type = 'button';
@@ -575,4 +575,4 @@ async function requestAPI(endPoint, serverSettings, init = {}) {
 /***/ }
 
 }]);
-//# sourceMappingURL=lib_index_js.8eb3fae0de854a19717f.js.map
+//# sourceMappingURL=lib_index_js.3d80398214afec8a68cb.js.map

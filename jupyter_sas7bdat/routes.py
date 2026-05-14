@@ -139,12 +139,36 @@ class SettingsHandler(APIHandler):
         }))
 
 
+def _like_to_regex(sql_pattern: str) -> str:
+    """Convert a SQL LIKE pattern (with surrounding quotes) to a Python regex string.
+
+    % matches any sequence of characters; _ matches any single character.
+    All other characters are regex-escaped so they match literally.
+    """
+    import re
+    inner = sql_pattern[1:-1]  # strip surrounding quote chars
+    result = '^'
+    for ch in inner:
+        if ch == '%':
+            result += '.*'
+        elif ch == '_':
+            result += '.'
+        else:
+            result += re.escape(ch)
+    return result + '$'
+
+
 def _apply_where(df: pd.DataFrame, where: str) -> pd.DataFrame:
     """Filter df using a SQL-like WHERE expression via pandas .query().
 
     Column name matching is case-insensitive: 'model', 'Model', and 'MODEL'
-    all resolve to the same column. AND/OR/NOT are case-insensitive. Bare =
-    is rewritten to ==. Names with spaces need backtick-quoting: `my col`.
+    all resolve to the same column. AND/OR/NOT/LIKE/NOT LIKE are
+    case-insensitive. Bare = is rewritten to ==. Names with spaces need
+    backtick-quoting: `my col`.
+
+    LIKE supports % (any chars) and _ (any single char):
+      Model LIKE '%Sport%'   → rows where Model contains "Sport"
+      Model NOT LIKE 'A%'    → rows where Model does not start with "A"
 
     Implementation: queries a lowercase-column copy of df, then returns the
     original df filtered by the matching row index so displayed column names
@@ -152,12 +176,34 @@ def _apply_where(df: pd.DataFrame, where: str) -> pd.DataFrame:
     """
     import re
 
-    expr = re.sub(r'\bAND\b', 'and', where, flags=re.IGNORECASE)
+    col_lower = {c.lower() for c in df.columns}
+
+    # LIKE / NOT LIKE: collect each occurrence, replace with a @_like_N boolean
+    # mask variable, then compute the masks on df_norm and pass via local_dict.
+    # This avoids emitting .str.contains() calls with kwargs into the query
+    # string, which pandas query() does not support.
+    _LIKE_RE = re.compile(
+        r"\b([A-Za-z_][A-Za-z0-9_]*|`[^`]+`)\s+(NOT\s+)?LIKE\s+('[^']*'|\"[^\"]*\")",
+        re.IGNORECASE,
+    )
+    like_specs: list[tuple[str, str]] = []  # (lowered_col_name, regex)
+
+    def _collect_like(m: re.Match) -> str:
+        col_ref = m.group(1)
+        negate = m.group(2) is not None
+        pattern = m.group(3)
+        lower_col = col_ref[1:-1].lower() if col_ref.startswith('`') else col_ref.lower()
+        regex = _like_to_regex(pattern)
+        var_name = f'_like_{len(like_specs)}'
+        like_specs.append((lower_col, regex))
+        return f'~@{var_name}' if negate else f'@{var_name}'
+
+    expr = _LIKE_RE.sub(_collect_like, where)
+
+    expr = re.sub(r'\bAND\b', 'and', expr, flags=re.IGNORECASE)
     expr = re.sub(r'\bOR\b', 'or', expr, flags=re.IGNORECASE)
     expr = re.sub(r'\bNOT\b', 'not', expr, flags=re.IGNORECASE)
     expr = re.sub(r'(?<![!<>=])=(?!=)', '==', expr)
-
-    col_lower = {c.lower() for c in df.columns}
 
     # Lowercase backtick-quoted column references: `My Col` → `my col`
     expr = re.sub(r'`([^`]*)`', lambda m: '`' + m.group(1).lower() + '`', expr)
@@ -185,8 +231,18 @@ def _apply_where(df: pd.DataFrame, where: str) -> pd.DataFrame:
     expr = ''.join(remapped)
 
     df_norm = df.set_axis([c.lower() for c in df.columns], axis=1)
+
+    like_local: dict[str, pd.Series] = {}
+    for i, (col_name, regex) in enumerate(like_specs):
+        if col_name not in df_norm.columns:
+            raise tornado.web.HTTPError(400, f"Unknown column in LIKE expression: {col_name!r}")
+        like_local[f'_like_{i}'] = df_norm[col_name].str.contains(
+            regex, case=False, na=False, regex=True
+        )
+
     try:
-        return df.loc[df_norm.query(expr).index]
+        matched = df_norm.query(expr, local_dict=like_local) if like_local else df_norm.query(expr)
+        return df.loc[matched.index]
     except Exception as exc:
         raise tornado.web.HTTPError(400, f"Invalid filter expression: {exc}") from exc
 

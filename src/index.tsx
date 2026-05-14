@@ -180,7 +180,7 @@ class WhereFilterWidget extends Widget implements Dialog.IBodyWidget<string> {
     const hint = document.createElement('span');
     hint.className = 'jp-sas7bdat-where-hint';
     hint.textContent =
-      'Column names are case-insensitive. Names with spaces need backticks: `my col` > 0.';
+      'Supports =, !=, <, >, AND, OR, NOT, and LIKE with % wildcards (e.g. Name LIKE \'%Smith%\'). Column names are case-insensitive; names with spaces use backticks: `my col`.';
     hintRow.appendChild(hint);
 
     const clearBtn = document.createElement('button');
