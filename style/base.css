@@ -409,12 +409,6 @@
   padding: 4px 0;
 }
 
-.jp-sas7bdat-where-label {
-  color: var(--jp-ui-font-color1);
-  font-size: var(--jp-ui-font-size1);
-  margin: 0;
-}
-
 .jp-sas7bdat-where-input {
   box-sizing: border-box;
   font-family: var(--jp-code-font-family);

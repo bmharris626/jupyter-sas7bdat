@@ -162,11 +162,6 @@ class WhereFilterWidget extends Widget implements Dialog.IBodyWidget<string> {
       node.appendChild(errDiv);
     }
 
-    const label = document.createElement('p');
-    label.className = 'jp-sas7bdat-where-label';
-    label.textContent = 'Filter rows — SQL-like syntax (AND, OR, NOT, =, !=, <, >, <=, >=):';
-    node.appendChild(label);
-
     const textarea = document.createElement('textarea');
     textarea.className = 'jp-sas7bdat-where-input jp-mod-styled';
     textarea.value = initialValue;
