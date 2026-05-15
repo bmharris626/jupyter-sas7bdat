@@ -194,10 +194,6 @@ class WhereFilterWidget extends _lumino_widgets__WEBPACK_IMPORTED_MODULE_4__.Wid
             errDiv.textContent = errorMsg;
             node.appendChild(errDiv);
         }
-        const label = document.createElement('p');
-        label.className = 'jp-sas7bdat-where-label';
-        label.textContent = 'Filter rows — SQL-like syntax (AND, OR, NOT, =, !=, <, >, <=, >=):';
-        node.appendChild(label);
         const textarea = document.createElement('textarea');
         textarea.className = 'jp-sas7bdat-where-input jp-mod-styled';
         textarea.value = initialValue;
@@ -296,6 +292,7 @@ class Sas7bdatWidget extends _jupyterlab_apputils__WEBPACK_IMPORTED_MODULE_0__.R
                         columns.length - this.hiddenColumns.size,
                         "/",
                         columns.length),
+                    react__WEBPACK_IMPORTED_MODULE_5__.createElement("button", { className: "jp-sas7bdat-sidebar-toggle-all", title: this.hiddenColumns.size === 0 ? 'Deselect all' : 'Select all', onClick: () => this.toggleAllColumns(columns.map(c => c.name)) }, this.hiddenColumns.size === 0 ? 'Deselect all' : 'Select all'),
                     react__WEBPACK_IMPORTED_MODULE_5__.createElement("button", { className: "jp-sas7bdat-icon-btn", title: "Close panel", onClick: () => {
                             this.sidebarOpen = false;
                             this.update();
@@ -366,6 +363,15 @@ class Sas7bdatWidget extends _jupyterlab_apputils__WEBPACK_IMPORTED_MODULE_0__.R
         }
         else {
             this.hiddenColumns.add(name);
+        }
+        this.update();
+    }
+    toggleAllColumns(names) {
+        if (this.hiddenColumns.size === 0) {
+            names.forEach(n => this.hiddenColumns.add(n));
+        }
+        else {
+            this.hiddenColumns.clear();
         }
         this.update();
     }
@@ -575,4 +581,4 @@ async function requestAPI(endPoint, serverSettings, init = {}) {
 /***/ }
 
 }]);
-//# sourceMappingURL=lib_index_js.3d80398214afec8a68cb.js.map
+//# sourceMappingURL=lib_index_js.c67f1369886d9cf55e29.js.map

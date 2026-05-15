@@ -120,7 +120,7 @@
     "extension": true,
     "outputDir": "jupyter_sas7bdat/labextension",
     "_build": {
-      "load": "static/remoteEntry.f90b4dd70e0a39b9b65c.js",
+      "load": "static/remoteEntry.22bfea8de2e0fcd4dda7.js",
       "extension": "./extension",
       "style": "./style"
     }
