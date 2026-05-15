@@ -272,6 +272,13 @@ class Sas7bdatWidget extends ReactWidget {
                 {columns.length - this.hiddenColumns.size}/{columns.length}
               </span>
               <button
+                className="jp-sas7bdat-sidebar-toggle-all"
+                title={this.hiddenColumns.size === 0 ? 'Deselect all' : 'Select all'}
+                onClick={() => this.toggleAllColumns(columns.map(c => c.name))}
+              >
+                {this.hiddenColumns.size === 0 ? 'Deselect all' : 'Select all'}
+              </button>
+              <button
                 className="jp-sas7bdat-icon-btn"
                 title="Close panel"
                 onClick={() => {
@@ -441,6 +448,15 @@ class Sas7bdatWidget extends ReactWidget {
       this.hiddenColumns.delete(name);
     } else {
       this.hiddenColumns.add(name);
+    }
+    this.update();
+  }
+
+  private toggleAllColumns(names: string[]): void {
+    if (this.hiddenColumns.size === 0) {
+      names.forEach(n => this.hiddenColumns.add(n));
+    } else {
+      this.hiddenColumns.clear();
     }
     this.update();
   }

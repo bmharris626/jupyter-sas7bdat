@@ -64,6 +64,21 @@
   padding: 1px 6px;
 }
 
+.jp-sas7bdat-sidebar-toggle-all {
+  background: none;
+  border: none;
+  color: var(--jp-brand-color1, #1976d2);
+  cursor: pointer;
+  font-size: 10px;
+  padding: 0;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.jp-sas7bdat-sidebar-toggle-all:hover {
+  color: var(--jp-brand-color0, #1565c0);
+}
+
 /* ── Variable list ────────────────────────────────────────────────── */
 
 .jp-sas7bdat-variable-list {
