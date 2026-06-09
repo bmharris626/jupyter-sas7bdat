@@ -27,6 +27,16 @@ pip install jupyter_sas7bdat
 
 Jupyter should discover both the server extension and prebuilt lab extension automatically.
 
+### From pre-built wheel
+
+Download the pre-built wheel from the [latest release](https://github.com/bmharris626/jupyter-sas7bdat/releases) and install:
+
+```bash
+pip install jupyter_sas7bdat-0.1.0-py3-none-any.whl
+```
+
+The wheel is self-contained and includes the frontend bundle — no build tools required. Jupyter will auto-discover both the server extension and prebuilt lab extension.
+
 ### Development install
 
 ```bash
